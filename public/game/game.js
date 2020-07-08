@@ -18,8 +18,10 @@ var config = {
 
 var game = new Phaser.Game(config);
 
-function preload() {
 
+function preload() {
+    // adding array of character with 178 unique positions
+    this.load.spritesheet('mainCharacter', 'assets/mainCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
 }
 
 function create() {
@@ -31,6 +33,12 @@ function create() {
 
     
     platforms.create(400,300,rect);
+    
+    //
+    var mainCharacterRows = 13;
+    // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
+
+    this.add.sprite(100, 200, 'mainCharacter', (6*mainCharacterRows)+(7));
 }
 
 function update() {
