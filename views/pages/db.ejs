@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <% include ../partials/header.ejs %>
+
 </head>
 
 <body>
 
-<% include ../partials/nav.ejs %>
+
 
 <div class="container">
 <h2>Database Results</h2>
@@ -17,6 +17,7 @@
       <th>Id</th>
       <th>Name</th>
       <th>E-mail</th>
+      <th>Type</th>
       <th>Password</th>
     </tr>
     <% rows.forEach(function(r) { %>
@@ -24,6 +25,7 @@
         <td><%= r.id %></td>
         <td><%= r.name %></td>
         <td><%= r.email %></td>
+        <td><%= r.type %></td>
         <td><%= r.password %></td>
       </tr><br>
     <% }); %>

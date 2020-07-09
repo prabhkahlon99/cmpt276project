@@ -1,19 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
-    <meta charset="UTF-8" />
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Home</title>
+    <meta charset="utf-8">
+    <title>start page</title>
+    <link rel="stylesheet" href="./stylesheets/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
   </head>
   <body>
-    <h1>Home</h1>
+    <div class="services-section">
+      <div class="inner-width">
+        <h1 class="section-title">Welcome to the Best Experience</h1>
+        <div class="border"></div>
+        <div class="services-container">
 
-    <% if (typeof message !== 'undefined' ) { %>
-    <p><%= message %></p>
-    <% } %>
+          <div class="service-box">
+            <div class="service-icon">
+              <i class="fas fa-user-secret"></i>
+            </div>
+            <a id="link" href="/adminlogin">
+            <div class="service-title" >Admin</div>
+            </a>
+            <div class="service-desc">
+              Click on ADMIN if you are an admin.
+            </div>
+          </div>
 
-    <a href="/login">Login</a>
+          <div class="service-box">
+            <div class="service-icon">
+              <i class="fas fa-users"></i>
+            </div>
+
+            <a id="link" href="/login">
+            <div class="service-title" >User</div>
+            </a>
+            <div class="service-desc">
+              Click to USER if you are an user.
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
   </body>
 </html>
