@@ -1,4 +1,4 @@
-Not used to git was using abhijit's laptop and his github account was cloned so pushed from her account.
+Not used to git was using abhijit's laptop and her github account was cloned so pushed from her account.
 
 
 # node-js-getting-started
