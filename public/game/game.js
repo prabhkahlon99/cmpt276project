@@ -1,5 +1,6 @@
 var config = {
     type: Phaser.AUTO,
+<<<<<<< HEAD
     scale: {
         width: 800,
         height: 600,
@@ -12,6 +13,15 @@ var config = {
         arcade: {
             gravity: {y: 250},
             debug: false // set to true to see sprite hitbox etc
+=======
+    width: 800,
+    height: 600,
+    physics: {
+        default: "arcade",
+        arcade: {
+            gravity: {y: 0},
+            debug: false
+>>>>>>> 455262beed086981ac0c6dee1ed8ffcc7539ce3e
         }
     },
     scene: {
@@ -21,12 +31,18 @@ var config = {
     }
 };
 
+<<<<<<< HEAD
 
 var controls
+=======
+var game = new Phaser.Game(config);
+
+>>>>>>> 455262beed086981ac0c6dee1ed8ffcc7539ce3e
 
 function preload() {
     // adding array of character with 178 unique positions
     this.load.spritesheet('mainCharacter', 'assets/mainCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
+<<<<<<< HEAD
     this.load.image('ground', 'assets/platform.png')
 }
 
@@ -123,3 +139,27 @@ function update() {
 }
 
 var game = new Phaser.Game(config);
+=======
+}
+
+function create() {
+    var rect = new Phaser.Geom.Rectangle(400,300,100,100);
+    var graphics = this.add.graphics();
+    graphics.fillStyle(0xFFFFFF);
+    graphics.fillRectShape(rect);
+    var platforms = this.physics.add.staticGroup();
+
+    
+    platforms.create(400,300,rect);
+    
+    //
+    var mainCharacterRows = 13;
+    // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
+
+    this.add.sprite(100, 200, 'mainCharacter', (6*mainCharacterRows)+(7));
+}
+
+function update() {
+
+}
+>>>>>>> 455262beed086981ac0c6dee1ed8ffcc7539ce3e
