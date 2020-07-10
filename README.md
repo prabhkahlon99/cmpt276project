@@ -57,3 +57,4 @@ As of iteration 1 the UI for the login and register pages are the same as the im
 As of iteration 1, the images below are still our reference for the main games UI
 ![alt_text](mdImages/image2.png "concept")
 ![alt_text](mdImages/image3.png "concept")
+Our plan is to create something similar in design/functionality to the pictures above (taken from Google)
