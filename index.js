@@ -16,7 +16,8 @@ const { Pool } = require('pg');
 var pool;
 pool = new Pool({
   //connectionString: 'postgres://postgres:2590@localhost/logindb'
-  connectionString: process.env.DATABASE_URL
+  //connectionString: process.env.DATABASE_URL
+  connectionString: 'postgres://postgres:root@localhost:5432/logindb'
 })
 
 var app = express();
@@ -46,7 +47,7 @@ app.get("/login", checkNotAuthenticated, (req, res) => {
 
 //renders to the game main page in the views/pages.
 app.get("/gamehome", checkAuthenticated, (req, res) => {
-  res.render("pages/game_home");
+  res.redirect(301, "game.html");
 });
 
 app.get("/adminlogin",checkNAuthenticated, (req, res) => {
