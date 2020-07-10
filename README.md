@@ -47,4 +47,13 @@ Our competitors are any other companies who make platforming games. Most platfor
 
 As of iteration zero, the only UI plan we have is a login screen. The main login will look something like the image below.
 
+![alt_text](mdImages/image1.png "iteration 0")
+
 As of iteration 1 the UI for the login and register pages are the same as the images below
+
+![alt_text](mdImages/image4.png "iteration 1")
+![alt_text](mdImages/image5.png "iteration 1")
+
+As of iteration 1, the images below are still our reference for the main games UI
+![alt_text](mdImages/image2.png "concept")
+![alt_text](mdImages/image3.png "concept")
