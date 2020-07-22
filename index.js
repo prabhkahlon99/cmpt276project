@@ -15,8 +15,8 @@ const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 var pool;
 pool = new Pool({
-  //connectionString: 'postgres://postgres:2590@localhost/logindb'
-  connectionString: process.env.DATABASE_URL
+  connectionString: 'postgres://postgres:2590@localhost/logindb'
+  //connectionString: process.env.DATABASE_URL
   //connectionString: 'postgres://postgres:root@localhost:5432/logindb'
 })
 
@@ -24,7 +24,7 @@ var app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({secret:'secret',resave: true, saveUninitialized:true}));
+app.use(session({secret:'secret',resave: false, saveUninitialized:false}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(passprt.initialize());
@@ -33,20 +33,33 @@ app.use(flash());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.get('/', checkNotAuthenticated, (req, res) => res.render('pages/index'));
-app.get('/', checkNAuthenticated, (req, res) => res.render('pages/index'));
 
 //renders to the register page in the views/pages.
 app.get("/register", checkNotAuthenticated, (req, res) => {
   res.render("pages/register");
 });
 
+app.get("/adminregister", checkNAuthenticated, (req, res) => {
+  res.render("pages/adminRegister");
+});
+
+
 //renders to the login page in the views/pages.
 app.get("/login", checkNotAuthenticated, (req, res) => {
   res.render("pages/login");
 });
 
+app.get("/search",(req, res) => {
+  res.render("pages/search");
+});
+
+app.get("/delete",(req, res) => {
+  res.render("pages/delete");
+});
+
+
 //renders to the game main page in the views/pages.
-app.get("/gamehome", checkAuthenticated, (req, res) => {
+app.get("/gamehome", (req, res) => {
   res.redirect(301, "game.html");
 });
 
@@ -54,7 +67,7 @@ app.get("/adminlogin",checkNAuthenticated, (req, res) => {
   res.render("pages/adminlogin");
 });
 
-app.get("/admin", checkAAuthenticated, (req, res) => {
+app.get("/admin", (req, res) => {
   res.render("pages/admin");
 });
 
@@ -73,7 +86,7 @@ app.get("/log-out", checkAAuthenticated, (req, res) => {
   res.redirect("/adminlogin");
 });
 
-app.get('/database', (req, res) => {
+app.get('/database', checkNAuthenticated, (req, res) => {
   var getusers = 'SELECT * FROM loginusers';
   pool.query(getusers, (error,result) => {
     if (error)
@@ -82,6 +95,69 @@ app.get('/database', (req, res) => {
     res.render('pages/db', results);
   })
 });
+
+
+//Searchs and prints user with that id.
+app.get('/searchUser',(req, res) => {
+  var id = req.query.id;
+
+  let errors = [];
+
+  pool.query(
+    `SELECT * FROM loginusers WHERE id = $1`,
+    [id],
+    (error, result) => {
+    if (error) {
+      throw error;
+    }
+
+    if( result.rows.length == 0) {
+        errors.push({ message: "User doesnot exist!!" });
+        res.render("pages/search", {errors});
+    }else {
+      var results = {'rows':result.rows}
+      res.render('pages/db', results);
+    }
+
+});
+});
+
+
+//
+app.post('/deleteUser',(req, res) => {
+  var id = req.body.id;
+
+  let errors = [];
+
+  pool.query(
+    `SELECT * FROM loginusers WHERE id = $1`,
+    [id],
+    (error, results) => {
+    if (error) {
+      throw error;
+    }
+    if( results.rows.length == 0) {
+        errors.push({ message: "User doesnot exist!!" });
+        res.render("pages/delete", {errors});
+      }else {
+        pool.query(
+          `delete FROM loginusers WHERE id = $1`,
+          [id],
+          (error,results) => { if (error) {
+            throw error;
+          }
+          req.flash("success_msg", "User deleted successfully...");
+          res.render('pages/delete', results);
+        }
+      );
+    }
+  });
+});
+
+
+
+
+
 
 //registers the user in the database and handles the errors and success.
 app.post("/register", checkNotAuthenticated, async (req, res) => {
@@ -142,6 +218,83 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
   );
 }
 });
+
+
+
+
+//admin add getusers
+app.post("/adminregister", checkNAuthenticated, async (req, res) => {
+  let name = req.body.name;
+  let email = req.body.email;
+  let type = req.body.type;
+  let password = req.body.password;
+  let passwordre = req.body.passwordre;
+  let aadmin = 'admin';
+  let publicc = 'public'
+
+
+  console.log(name, email, type, password);
+
+  let errors = [];
+
+  if (password !== passwordre) {
+    errors.push({ message: "Passwords does not match!!!!" });
+  }
+
+  if (password.length < 5) {
+    errors.push({ message: "Password too short, must be greater (>5)" });
+  }
+
+  if (!name || !email || !password || !passwordre) {
+    errors.push({ message: "Please correctly enter all the fields" });
+  }
+  // if(type !== aadmin){
+  //    errors.push({ message: "Please specify the type from admin or public!!" });
+  // }
+  // if(type !== publicc){
+  //    errors.push({ message: "Please specify the type from admin or public!!" });
+  // }
+
+
+  if(errors.length > 0) {
+    res.render("pages/adminRegister", {errors});
+  }else {
+
+
+
+  pool.query(
+    `SELECT * FROM loginusers WHERE email = $1`,
+    [email],
+    (error, results) => {
+    if (error) {
+      throw error;
+    }
+
+    if( results.rows.length > 0) {
+        errors.push({ message: "Email already registered!" });
+        res.render("pages/adminRegister", {errors});
+      }else {
+        pool.query(
+         `INSERT INTO loginusers(name, email, type, password)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, password`,
+          [name, email, type, password],
+          (error,results) => { if (error) {
+            throw error;
+          }
+          console.log(results.rows);
+          req.flash("success_msg", "User registered successfully");
+          res.redirect("/adminRegister");
+        }
+      );
+    }
+  }
+  );
+}
+});
+
+
+
 
 // initialize();
 //compares the provided email and password with the one in the database
@@ -307,6 +460,12 @@ function checkNAuthenticated(req, res, next) {
    return res.redirect("/admin");
   }
     next();
+}
+function checkDAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return res.redirect("/admin");
+   }
+  return res.redirect("/adminlogin");
 }
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
