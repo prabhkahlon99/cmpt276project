@@ -1,39 +1,45 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./stylesheets/styledatabase.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css">
 
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title></title>
+  </head>
+  <body>
+    <div class="container">
+    <h2>Database</h2>
 
-<body>
+    <ul>
+      <table border="2px">
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>E-mail</th>
+          <th>Type</th>
+          <th>Password</th>
+        </tr>
+        <% rows.forEach(function(r) { %>
+          <tr>
+            <td><%= r.id %></td>
+            <td><%= r.name %></td>
+            <td><%= r.email %></td>
+            <td><%= r.type %></td>
+            <td><%= r.password %></td>
+          </tr><br>
+        <% }); %>
+
+      </table>
+    </ul>
+
+    <a id="link" href="/admin">game_home</a>
+
+    </div>
 
 
-
-<div class="container">
-<h2>Database</h2>
-
-<ul>
-  <table border="2px">
-    <tr>
-      <th>Id</th>
-      <th>Name</th>
-      <th>E-mail</th>
-      <th>Type</th>
-      <th>Password</th>
-    </tr>
-    <% rows.forEach(function(r) { %>
-      <tr>
-        <td><%= r.id %></td>
-        <td><%= r.name %></td>
-        <td><%= r.email %></td>
-        <td><%= r.type %></td>
-        <td><%= r.password %></td>
-      </tr><br>
-    <% }); %>
-
-  </table>
-</ul
-
-</div>
-
-</body>
+      </form>
+  </body>
 </html>
