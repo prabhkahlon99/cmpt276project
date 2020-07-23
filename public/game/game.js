@@ -35,10 +35,11 @@ function preload() {
     this.load.spritesheet('mainCharacter', 'assets/mainCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
     this.load.image('ground', 'assets/platform.png')
     this.load.image('clearBlue', 'assets/clearblue.png')
-    this.load.image('clearGrey', 'assets/cleargrey.png')
     this.load.image('cloudyBlue', 'assets/cloudyblue.png')
+    this.load.image('clearGrey', 'assets/cleargrey.png')
     this.load.image('cloudyGrey', 'assets/cloudygrey.png')
     this.load.image('rainyGrey', 'assets/rainygrey.png')
+    this.load.image('elsePink', 'assets/elsePink.png')
 
     this.load.spritesheet('monsterCharacter', 'assets/monsterCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
     this.load.image('ground', 'assets/platform.png');
@@ -47,16 +48,8 @@ function preload() {
 
 }
 
-
-var temperature
 function create() {
 
-    // $.getJSON('http://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric', function(data) { 
-    // temperature = data["main"]["temp"];
-    // console.log(temperature)
-    
-    // })
-    
     $.ajax({
         async: false,
         url: 'http://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric',
@@ -68,7 +61,40 @@ function create() {
         }
     })
 
-    this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
+
+
+
+    console.log(temperature)
+    console.log(clouds)
+    console.log(status)
+    
+    if (temperature >= 15 && clouds < 20 && status == "Clear") {
+        this.add.image(400,300,'clearBlue')
+    }
+
+
+    else if (temperature >= 15 && clouds >= 20 && status == "Clouds") {
+        this.add.image(400,300, 'cloudyBlue')
+    }
+
+    else if (temperature < 15 && clouds < 20 && status == "Clear") {
+        this.add.image(400,300,'clearGrey')
+    }
+
+    else if (temperature < 15 && clouds >= 20 && status == "Clouds") {
+        this.add.image(400,300,'cloudyGrey')
+    }
+
+    else if (status == "Drizzle" || status == "Rain") {
+        this.add.image(400,300,'rainyGrey')
+    }
+
+    else {
+        this.add.image(400,300,'elsePink')
+    }
+    // if (temperature >= 15 && )
+
+    //this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
     var mainCharacterRows = 13;
 
     //Adding main character to game
