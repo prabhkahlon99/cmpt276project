@@ -21,16 +21,41 @@ var config = {
     }
 };
 
-
 var controls
+var temperature
 
 function preload() {
     // adding array of character with 178 unique positions
     this.load.spritesheet('mainCharacter', 'assets/mainCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
     this.load.image('ground', 'assets/platform.png')
+    this.load.image('clearBlue', 'assets/clearblue.png')
+    this.load.image('clearGrey', 'assets/cleargrey.png')
+    this.load.image('cloudyBlue', 'assets/cloudyblue.png')
+    this.load.image('cloudyGrey', 'assets/cloudygrey.png')
+    this.load.image('rainyGrey', 'assets/rainygrey.png')
 }
 
+
+var temperature
 function create() {
+
+    // $.getJSON('http://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric', function(data) { 
+    // temperature = data["main"]["temp"];
+    // console.log(temperature)
+    
+    // })
+    
+    $.ajax({
+        async: false,
+        url: 'http://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric',
+        success: function(data) { 
+            temperature = data["main"]["temp"];
+            clouds = data["clouds"]["all"];
+            status = data["weather"]["0"]["main"]
+            
+        }
+    })
+
     this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
     var mainCharacterRows = 13;
 
