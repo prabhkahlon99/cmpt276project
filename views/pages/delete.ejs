@@ -7,12 +7,12 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>game login</title>
+    <title></title>
   </head>
   <body>
 
     <div class="login">
-      <h1>Login</h1>
+      <h1>Delete_User</h1>
 
      <div id="body">
 
@@ -29,21 +29,25 @@
          <% } %>
       </ul>
 
-      <form action="/adminlogin" method="POST">
+      <ul>
+       <% if (typeof errors != 'undefined')  { %>
+         <% errors.forEach(error => { %>
+            <li><%= error.message %></li>
+        <% }) %>
+      <% } %>
+       </ul>
+
+      <form action="/deleteUser" method="POST">
 
       <div class="input_box">
         <i class="far fa-user"></i>
-        <input type="email" id="email" name="email" placeholder="Email" required>
+        <input type="id" id="id" name="id" placeholder="Enter User's id to delete" required>
       </div>
 
-      <div class="input_box">
-        <i class="fas fa-lock"></i>
-        <input type="password" id="password" name="password" placeholder="Password" required>
-      </div>
 
-      <input type="submit" class="button" value="Sign in" action="/adminlogin">
+      <input type="submit" class="button" value="deleteUser">
 
-        <a id="link" href="/">Start page</a>
+        <a id="link" href="/admin">game_home</a>
 
         </div>
 

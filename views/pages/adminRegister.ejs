@@ -4,15 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Register</title>
+    <title>Admin addUsers</title>
     <link rel="stylesheet" href="./stylesheets/style.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css">
 
   </head>
   <body>
-  <!-- <body id="adminregister" style = "display:none" onload="checkRegister()"> -->
     <div class="login">
-      <h1>Register</h1>
+      <h1>Add-Users</h1>
 
       <div id="body">
         <ul>
@@ -22,8 +21,13 @@
           <% }) %>
         <% } %>
          </ul>
+         <ul>
+           <% if (messages.success_msg) { %>
+           <li><%= messages.success_msg %></li>
+            <% } %>
+         </ul>
 
-      <form action="/register" method="POST">
+      <form action="/adminregister" method="POST">
           <div class="input_box">
             <i class="far fa-user"></i>
             <input type="text" id="name" name="name" placeholder="Username" required>
@@ -32,6 +36,11 @@
           <div class="input_box">
             <i class="fas fa-envelope"></i>
             <input type="email" id="email" name="email"placeholder="email" required>
+          </div>
+
+          <div class="input_box">
+            <i class="far fa-user"></i>
+            <input type="text" id="type" name="type" placeholder="User-type" required>
           </div>
 
           <div class="input_box">
@@ -45,8 +54,8 @@
 
 
           <input type="submit" class="button" value="Register">
-          User already registered?
-          <a id="link" href="/login">Login here</a>
+            <a id="link" href="/admin">Admin Home_page</a>
+
 
           </div>
       </form>
