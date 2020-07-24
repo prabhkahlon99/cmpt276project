@@ -6,6 +6,7 @@ const flash = require('express-flash');
 const passport = require('passport');
 const passprt = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+var cors = require('cors');
 
 initialize();
 
@@ -15,9 +16,9 @@ const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 var pool;
 pool = new Pool({
-  connectionString: 'postgres://postgres:2590@localhost/logindb'
+  //connectionString: 'postgres://postgres:2590@localhost/logindb'
   //connectionString: process.env.DATABASE_URL
-  //connectionString: 'postgres://postgres:root@localhost:5432/logindb'
+  connectionString: 'postgres://postgres:root@localhost:5432/logindb'
 })
 
 var app = express();
@@ -433,7 +434,6 @@ app.post("/adminlogin", checkNAuthenticated, (req,res) => {
 
 });
 
-
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
@@ -469,3 +469,5 @@ function checkDAuthenticated(req, res, next) {
 }
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
+
+module.exports = app;
