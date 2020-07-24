@@ -34,6 +34,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.get('/', checkNotAuthenticated, (req, res) => res.render('pages/index'));
 
+
+
 //renders to the register page in the views/pages.
 app.get("/register", checkNotAuthenticated, (req, res) => {
   res.render("pages/register");
@@ -128,30 +130,34 @@ app.post('/deleteUser',(req, res) => {
   var id = req.body.id;
 
   let errors = [];
-
-  pool.query(
-    `SELECT * FROM loginusers WHERE id = $1`,
-    [id],
-    (error, results) => {
-    if (error) {
-      throw error;
-    }
-    if( results.rows.length == 0) {
-        errors.push({ message: "User doesnot exist!!" });
-        res.render("pages/delete", {errors});
-      }else {
-        pool.query(
-          `delete FROM loginusers WHERE id = $1`,
-          [id],
-          (error,results) => { if (error) {
-            throw error;
-          }
-          req.flash("success_msg", "User deleted successfully...");
-          res.render('pages/delete', results);
+  if( id > 0){
+    pool.query(
+      `SELECT * FROM loginusers WHERE id = $1`,
+      [id],
+      (error, results) => {
+        if (error) {
+          throw error;
         }
-      );
-    }
-  });
+        if( results.rows.length == 0) {
+          errors.push({ message: "User doesnot exist!!" });
+          res.render("pages/delete", {errors});
+        }else {
+          pool.query(
+            `delete FROM loginusers WHERE id = $1`,
+            [id],
+            (error,results) => { if (error) {
+              throw error;
+            }
+            req.flash("success_msg", "User deleted successfully...");
+            res.render('pages/delete', results);
+          }
+        );
+      }
+    });
+  } else {
+    req.flash("success_msg", "Sorry, Cannot delete the main user!!!");
+    res.render('pages/delete');
+  }
 });
 
 
@@ -219,9 +225,6 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
 }
 });
 
-
-
-
 //admin add getusers
 app.post("/adminregister", checkNAuthenticated, async (req, res) => {
   let name = req.body.name;
@@ -230,7 +233,7 @@ app.post("/adminregister", checkNAuthenticated, async (req, res) => {
   let password = req.body.password;
   let passwordre = req.body.passwordre;
   let aadmin = 'admin';
-  let publicc = 'public'
+  let publicc = 'public';
 
 
   console.log(name, email, type, password);
@@ -248,53 +251,46 @@ app.post("/adminregister", checkNAuthenticated, async (req, res) => {
   if (!name || !email || !password || !passwordre) {
     errors.push({ message: "Please correctly enter all the fields" });
   }
-  // if(type !== aadmin){
-  //    errors.push({ message: "Please specify the type from admin or public!!" });
-  // }
-  // if(type !== publicc){
-  //    errors.push({ message: "Please specify the type from admin or public!!" });
-  // }
-
 
   if(errors.length > 0) {
     res.render("pages/adminRegister", {errors});
   }else {
 
 
-
-  pool.query(
-    `SELECT * FROM loginusers WHERE email = $1`,
-    [email],
-    (error, results) => {
-    if (error) {
-      throw error;
-    }
-
-    if( results.rows.length > 0) {
-        errors.push({ message: "Email already registered!" });
-        res.render("pages/adminRegister", {errors});
-      }else {
-        pool.query(
-         `INSERT INTO loginusers(name, email, type, password)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id, password`,
-          [name, email, type, password],
-          (error,results) => { if (error) {
-            throw error;
-          }
-          console.log(results.rows);
-          req.flash("success_msg", "User registered successfully");
-          res.redirect("/adminRegister");
+  if(aadmin == type || publicc == type){
+    pool.query(
+      `SELECT * FROM loginusers WHERE email = $1`,
+      [email],
+      (error, results) => {
+        if (error) {
+          throw error;
         }
-      );
+
+        if( results.rows.length > 0) {
+          errors.push({ message: "Email already registered!" });
+          res.render("pages/adminRegister", {errors});
+        }else {
+          pool.query(
+            `INSERT INTO loginusers(name, email, type, password)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, password`,
+            [name, email, type, password],
+            (error,results) => { if (error) {
+              throw error;
+            }
+            console.log(results.rows);
+            req.flash("success_msg", "User registered successfully");
+            res.redirect("/adminRegister");
+          });
+        }
+      });
+    }
+    else{
+      req.flash("success_msg", "Please specify the type from admin or public!!");
+      res.render("pages/adminRegister");
     }
   }
-  );
-}
 });
-
-
-
 
 // initialize();
 //compares the provided email and password with the one in the database
@@ -343,53 +339,6 @@ function initialize() { //user
   });
 }
 
-
-// function initialise() { //admin
-//   passprt.use(
-    // new LocalStrategy({
-    //   usernameField: "email"
-    // },(email, password, done) => {
-    // pool.query(
-    //   `SELECT * FROM loginusers WHERE email = $1`,
-      // [email],
-      // (error, results) => {
-      // if (error) {
-      //   throw error;
-      // }
-      // if(results.rows.length > 0){
-      //   let user1 = results.rows[0];
-      //   let usertype1 = 'admin';
-      //   if(password == user1.password && usertype1 == user1.type){
-      //       return done(null, user1);
-      //     }else{
-      //       return done(null, false, {message: "Access not allowed!!!!"});
-      //     }
-//       }else{
-//         return done(null, false, {message: "User not found. Please register!!!"});
-//       }
-//     }
-//   );
-// }
-// )
-// );
-//
-//   passprt.serializeUser((user1, done) => done(null, user1.id));
-//   passprt.deserializeUser((id, done) =>{
-//     pool.query(
-//       `SELECT * FROM loginusers WHERE id = $1`,
-//       [id],
-//       (error, results)=>{
-//         if(error){
-//           throw error;
-//         }
-//         return done(null, results.rows[0]);
-//       });
-//   });
-// }
-
-
-
-
 // uses passport to check the authentication and
 //if success directs to gamehome page otherwise to the login page.
 app.post("/login", checkNotAuthenticated, passport.authenticate("local", {
@@ -399,14 +348,7 @@ failureRedirect: "/login",
 failureFlash: true
 })
 );
-// initialise(passprt);
-// app.post("/adminlogin", checkNAuthenticated, passprt.authenticate("local", {
-//
-// successRedirect: "/admin",
-// failureRedirect: "/adminlogin",
-// failureFlash: true
-// })
-// );
+
 
 app.post("/adminlogin", checkNAuthenticated, (req,res) => {
   const email = req.body.email;

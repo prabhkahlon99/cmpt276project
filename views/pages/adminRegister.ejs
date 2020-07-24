@@ -21,6 +21,11 @@
           <% }) %>
         <% } %>
          </ul>
+         <ul>
+           <% if (messages.success_msg) { %>
+           <li><%= messages.success_msg %></li>
+            <% } %>
+         </ul>
 
       <form action="/adminregister" method="POST">
           <div class="input_box">
