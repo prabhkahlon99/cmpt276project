@@ -52,7 +52,7 @@ function create() {
 
     $.ajax({
         async: false,
-        url: 'http://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric',
+        url: 'https://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric',
         success: function(data) { 
             temperature = data["main"]["temp"];
             clouds = data["clouds"]["all"];
