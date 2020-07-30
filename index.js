@@ -23,9 +23,10 @@ pool = new Pool({
 
 var app = express();
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({secret:'secret',resave: false, saveUninitialized:false}));
+var sessionStore = new session.MemoryStore();
+app.use(session({ secret: 'secret', resave: false, saveUninitialized: false, store: sessionStore }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(passprt.initialize());
@@ -35,8 +36,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.get('/', checkNotAuthenticated, (req, res) => res.render('pages/index'));
 
-
-
+//ROUTING
 //renders to the register page in the views/pages.
 app.get("/register", checkNotAuthenticated, (req, res) => {
   res.render("pages/register");
@@ -52,11 +52,11 @@ app.get("/login", checkNotAuthenticated, (req, res) => {
   res.render("pages/login");
 });
 
-app.get("/search",(req, res) => {
+app.get("/search", (req, res) => {
   res.render("pages/search");
 });
 
-app.get("/delete",(req, res) => {
+app.get("/delete", (req, res) => {
   res.render("pages/delete");
 });
 
@@ -66,7 +66,7 @@ app.get("/gamehome", (req, res) => {
   res.redirect(301, "game.html");
 });
 
-app.get("/adminlogin",checkNAuthenticated, (req, res) => {
+app.get("/adminlogin", checkNAuthenticated, (req, res) => {
   res.render("pages/adminlogin");
 });
 
@@ -79,29 +79,29 @@ app.get("/admin", (req, res) => {
 // logout the user and redirects to the login page.
 app.get("/logout", checkAuthenticated, (req, res) => {
   req.logout();
-  req.flash("success_msg", "You have logged out successfully" );
+  req.flash("success_msg", "You have logged out successfully");
   res.redirect("/login");
 });
 
 app.get("/log-out", checkAAuthenticated, (req, res) => {
   req.logout();
-  req.flash("success_msg", "You have logged out successfully" );
+  req.flash("success_msg", "You have logged out successfully");
   res.redirect("/adminlogin");
 });
 
 app.get('/database', checkNAuthenticated, (req, res) => {
   var getusers = 'SELECT * FROM loginusers';
-  pool.query(getusers, (error,result) => {
+  pool.query(getusers, (error, result) => {
     if (error)
       res.end(error);
-    var results = {'rows':result.rows}
+    var results = { 'rows': result.rows }
     res.render('pages/db', results);
   })
 });
 
 
 //Searchs and prints user with that id.
-app.get('/searchUser',(req, res) => {
+app.get('/searchUser', (req, res) => {
   var id = req.query.id;
 
   let errors = [];
@@ -110,28 +110,38 @@ app.get('/searchUser',(req, res) => {
     `SELECT * FROM loginusers WHERE id = $1`,
     [id],
     (error, result) => {
-    if (error) {
-      throw error;
-    }
+      if (error) {
+        throw error;
+      }
 
-    if( result.rows.length == 0) {
+      if (result.rows.length == 0) {
         errors.push({ message: "User doesnot exist!!" });
-        res.render("pages/search", {errors});
-    }else {
-      var results = {'rows':result.rows}
-      res.render('pages/db', results);
-    }
+        res.render("pages/search", { errors });
+      } else {
+        var results = { 'rows': result.rows }
+        res.render('pages/db', results);
+      }
 
+    });
 });
+
+app.get('/home', (req, res) => {
+  if (req.isAuthenticated()) {
+    var username = req.user.name;
+    res.sendFile(path.join(__dirname, '/public', 'menu.html'));
+  }
+  else {
+    res.send("not authenticated");
+  }
 });
 
 
 //
-app.post('/deleteUser',(req, res) => {
+app.post('/deleteUser', (req, res) => {
   var id = req.body.id;
 
   let errors = [];
-  if( id > 0){
+  if (id > 0) {
     pool.query(
       `SELECT * FROM loginusers WHERE id = $1`,
       [id],
@@ -139,22 +149,23 @@ app.post('/deleteUser',(req, res) => {
         if (error) {
           throw error;
         }
-        if( results.rows.length == 0) {
+        if (results.rows.length == 0) {
           errors.push({ message: "User doesnot exist!!" });
-          res.render("pages/delete", {errors});
-        }else {
+          res.render("pages/delete", { errors });
+        } else {
           pool.query(
             `delete FROM loginusers WHERE id = $1`,
             [id],
-            (error,results) => { if (error) {
-              throw error;
+            (error, results) => {
+              if (error) {
+                throw error;
+              }
+              req.flash("success_msg", "User deleted successfully...");
+              res.render('pages/delete', results);
             }
-            req.flash("success_msg", "User deleted successfully...");
-            res.render('pages/delete', results);
-          }
-        );
-      }
-    });
+          );
+        }
+      });
   } else {
     req.flash("success_msg", "Sorry, Cannot delete the main user!!!");
     res.render('pages/delete');
@@ -189,41 +200,42 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
   if (!name || !email || !password || !passwordre) {
     errors.push({ message: "Please correctly enter all the fields" });
   }
-  if(errors.length > 0) {
-    res.render("pages/register", {errors});
-  }else {
+  if (errors.length > 0) {
+    res.render("pages/register", { errors });
+  } else {
 
 
 
-  pool.query(
-    `SELECT * FROM loginusers WHERE email = $1`,
-    [email],
-    (error, results) => {
-    if (error) {
-      throw error;
-    }
+    pool.query(
+      `SELECT * FROM loginusers WHERE email = $1`,
+      [email],
+      (error, results) => {
+        if (error) {
+          throw error;
+        }
 
-    if( results.rows.length > 0) {
-        errors.push({ message: "Email already registered!" });
-        res.render("pages/register", {errors});
-      }else {
-        pool.query(
-         `INSERT INTO loginusers(name, email, password, type)
+        if (results.rows.length > 0) {
+          errors.push({ message: "Email already registered!" });
+          res.render("pages/register", { errors });
+        } else {
+          pool.query(
+            `INSERT INTO loginusers(name, email, password, type)
          VALUES ($1, $2, $3, $4)
          RETURNING id, password`,
-          [name, email, password, type],
-          (error,results) => { if (error) {
-            throw error;
-          }
-          console.log(results.rows);
-          req.flash("success_msg", "User registered successfully, Please login...");
-          res.redirect("/login");
+            [name, email, password, type],
+            (error, results) => {
+              if (error) {
+                throw error;
+              }
+              console.log(results.rows);
+              req.flash("success_msg", "User registered successfully, Please login...");
+              res.redirect("/login");
+            }
+          );
         }
-      );
-    }
+      }
+    );
   }
-  );
-}
 });
 
 //admin add getusers
@@ -253,40 +265,41 @@ app.post("/adminregister", checkNAuthenticated, async (req, res) => {
     errors.push({ message: "Please correctly enter all the fields" });
   }
 
-  if(errors.length > 0) {
-    res.render("pages/adminRegister", {errors});
-  }else {
+  if (errors.length > 0) {
+    res.render("pages/adminRegister", { errors });
+  } else {
 
 
-  if(aadmin == type || publicc == type){
-    pool.query(
-      `SELECT * FROM loginusers WHERE email = $1`,
-      [email],
-      (error, results) => {
-        if (error) {
-          throw error;
-        }
+    if (aadmin == type || publicc == type) {
+      pool.query(
+        `SELECT * FROM loginusers WHERE email = $1`,
+        [email],
+        (error, results) => {
+          if (error) {
+            throw error;
+          }
 
-        if( results.rows.length > 0) {
-          errors.push({ message: "Email already registered!" });
-          res.render("pages/adminRegister", {errors});
-        }else {
-          pool.query(
-            `INSERT INTO loginusers(name, email, type, password)
+          if (results.rows.length > 0) {
+            errors.push({ message: "Email already registered!" });
+            res.render("pages/adminRegister", { errors });
+          } else {
+            pool.query(
+              `INSERT INTO loginusers(name, email, type, password)
             VALUES ($1, $2, $3, $4)
             RETURNING id, password`,
-            [name, email, type, password],
-            (error,results) => { if (error) {
-              throw error;
-            }
-            console.log(results.rows);
-            req.flash("success_msg", "User registered successfully");
-            res.redirect("/adminRegister");
-          });
-        }
-      });
+              [name, email, type, password],
+              (error, results) => {
+                if (error) {
+                  throw error;
+                }
+                console.log(results.rows);
+                req.flash("success_msg", "User registered successfully");
+                res.redirect("/adminRegister");
+              });
+          }
+        });
     }
-    else{
+    else {
       req.flash("success_msg", "Please specify the type from admin or public!!");
       res.render("pages/adminRegister");
     }
@@ -302,37 +315,37 @@ function initialize() { //user
   passport.use(
     new LocalStrategy({
       usernameField: "email"
-    },(email, password, done) => {
-    pool.query(
-      `SELECT * FROM loginusers WHERE email = $1`,
-      [email],
-      (error, results) => {
-      if (error) {
-        throw error;
-      }
-      if(results.rows.length > 0){
-        let user = results.rows[0];
-        if(password == user.password){
-            return done(null, user);
-          }else{
-            return done(null, false, {message: "password is incorrect!!"});
+    }, (email, password, done) => {
+      pool.query(
+        `SELECT * FROM loginusers WHERE email = $1`,
+        [email],
+        (error, results) => {
+          if (error) {
+            throw error;
           }
-      }else{
-        return done(null, false, {message: "User not found. Please register!!!"});
-      }
+          if (results.rows.length > 0) {
+            let user = results.rows[0];
+            if (password == user.password) {
+              return done(null, user);
+            } else {
+              return done(null, false, { message: "password is incorrect!!" });
+            }
+          } else {
+            return done(null, false, { message: "User not found. Please register!!!" });
+          }
+        }
+      );
     }
+    )
   );
-}
-)
-);
 
   passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser((id, done) =>{
+  passport.deserializeUser((id, done) => {
     pool.query(
       `SELECT * FROM loginusers WHERE id = $1`,
       [id],
-      (error, results)=>{
-        if(error){
+      (error, results) => {
+        if (error) {
           throw error;
         }
         return done(null, results.rows[0]);
@@ -344,35 +357,35 @@ function initialize() { //user
 //if success directs to gamehome page otherwise to the login page.
 app.post("/login", checkNotAuthenticated, passport.authenticate("local", {
 
-successRedirect: "/gamehome",
-failureRedirect: "/login",
-failureFlash: true
+  successRedirect: "/gamehome",
+  failureRedirect: "/login",
+  failureFlash: true
 })
 );
 
 
-app.post("/adminlogin", checkNAuthenticated, (req,res) => {
+app.post("/adminlogin", checkNAuthenticated, (req, res) => {
   const email = req.body.email;
   const pass = req.body.password;
   pool.query(
     `SELECT * FROM loginusers WHERE email = '${email}'`,
     (error, results) => {
-    if (error) {
-      throw error;
-    }
-    if(results.rows.length > 0){
-      let user1 = results.rows[0];
-      let usertype1 = 'admin';
-      if(pass == user1.password && usertype1 == user1.type){
+      if (error) {
+        throw error;
+      }
+      if (results.rows.length > 0) {
+        let user1 = results.rows[0];
+        let usertype1 = 'admin';
+        if (pass == user1.password && usertype1 == user1.type) {
           res.render("pages/admin");
         }
-        else{
+        else {
           req.flash("success_msg", "Access not allowed!!!!");
           res.render("pages/adminlogin");
 
         }
       }
-  });
+    });
 
 });
 
@@ -385,9 +398,9 @@ function checkAuthenticated(req, res, next) {
 
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-   return res.redirect("/gamehome");
+    return res.redirect("/gamehome");
   }
-    next();
+  next();
 }
 
 function checkAAuthenticated(req, res, next) {
@@ -399,17 +412,54 @@ function checkAAuthenticated(req, res, next) {
 
 function checkNAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-   return res.redirect("/admin");
+    return res.redirect("/admin");
   }
-    next();
+  next();
 }
 function checkDAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return res.redirect("/admin");
-   }
+  }
   return res.redirect("/adminlogin");
 }
 
-app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
+const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+var io = require('socket.io').listen(server);
+var passportIo = require('passport.socketio');
+
+//Socket.io
+io.use(passportIo.authorize({
+  secret: 'secret',
+  store: sessionStore,
+  success: onAuthorizationSuccess,
+  fail: onAuthorizationFail
+}));
+
+function onAuthorizationSuccess(data, accept) {
+  //console.log(data);
+  //console.log(accept);
+  console.log("Connection accepted");
+  accept();
+}
+
+function onAuthorizationFail(data, message, error, accept) {
+  //console.log(data);
+  //console.log(accept);
+  console.log("Connection rejected");
+  if(error) {
+    accept(new Error(message));
+  }
+}
+
+
+io.on('connection', function (socket) {
+  console.log("a user connected");
+
+  console.log(socket.request.user);
+  io.sockets.emit('names', socket.request.user.name);
+  socket.on('disconnect', function () {
+    console.log("a user disconnected");
+  });
+});
 
 module.exports = app;

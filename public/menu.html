@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="jquery-3.5.1.min.js"></script>
+    <title>Index Page</title>
+</head>
+
+<body>
+    <form action="joinroom">
+        <input type="text" id="roomCode" name="roomCodeName" placeholder="Room ID">
+        <input type="submit" value="Join Room">
+    </form>
+    <p> or <p>
+    <form action="/createroom" method="POST">
+    <input type="submit" value="Create Room"></button>
+    </form>
+    <ul id="players"></ul>
+    <script>
+        $(function () {
+            var socket = io();
+
+            socket.on('names', function(data) {
+                console.log(data);
+                $('#players').append($('<li>').text(data));
+            });
+        });
+    </script>
+</body>
+
+</html>
