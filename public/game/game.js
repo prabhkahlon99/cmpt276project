@@ -127,6 +127,7 @@ function create() {
     //Allows player to pick up water bottle power up
     var bottleCollider = this.physics.add.overlap(viking, waterBottle, powerUpWater.bind(this));
     var monsterCollider = this.physics.add.overlap(this.axes, this.monster, destroyMonster.bind(this));
+    //var characterCollider = this.physics.add.overlap(viking, this.monster, destroyViking.bind(this));
     console.log(this.physics.world.bounds);
     console.log(this.physics.world.bounds.height);
     worldHeight = this.physics.world.bounds.height;
@@ -171,10 +172,19 @@ function create() {
     });
 
     this.anims.create({
+        key: 'death',
+        frames: this.anims.generateFrameNumbers('mainCharacter', {start: 260, end: 265}),
+        frameRate: 12,
+        repeat: 0
+    });
+
+    this.anims.create({
         key: 'turn',
         frames: [ { key: 'mainCharacter', frame: 4 } ],
         frameRate: 20
     });
+
+
 
 
     // Monster Animations
@@ -191,6 +201,29 @@ function create() {
         frameRate: 12,
         repeat: -1
     });
+
+     this.anims.create({
+        key: 'monsterDeath',
+        frames: this.anims.generateFrameNumbers('monsterCharacter', {start: 260, end: 265}),
+        frameRate: 8,
+        repeat: 0
+    });
+
+     this.anims.create({
+        key: 'monsterAttackLeft',
+        frames: this.anims.generateFrameNumbers('monsterCharacter', {start: 169, end: 174}),
+        frameRate: 8,
+        repeat: -1
+    });
+
+     this.anims.create({
+        key: 'monsterAttackRight',
+        frames: this.anims.generateFrameNumbers('monsterCharacter', {start: 195, end: 200}),
+        frameRate: 8,
+        repeat: -1
+    });
+
+
 
     this.monster.setVelocityX(100);
     
@@ -299,9 +332,28 @@ function destroyWeapon(body) {
 }
 
 function destroyMonster() {
-    this.monster.destroy();
+    this.monster.anims.play('monsterDeath', true);
+    this.monster.setVelocity(0);
+    var timer = this.time.delayedCall(800, despawnMonster, [], this);
+    //this.monster.destroy();
 }
 
+//helper function
+function despawnMonster() {
+    this.monster.destroy();
+}
+/*
+function destroyViking() {
+    this.monster.setVelocityX(0);
+
+    if (this.monster.x > this.viking.x ){
+        this.monster.anims.play('monsterAttackLeft', true);
+    }
+    else{
+        this.monster.anims.play('monsterAttackRight', true);
+    }
+}
+*/
 var game = new Phaser.Game(config);
 
 
