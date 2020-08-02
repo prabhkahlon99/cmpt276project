@@ -3,19 +3,33 @@ var socket = io();
 
 socket.emit('joinRoom', getRoomCode());
 
-socket.on('lobbyJoin', function(data) {
+socket.on('lobbyJoin', function (data) {
     console.log('lobbyJoin = ', data);
     let newPlayer = document.createElement("LI");
-    newPlayer.innerHTML = data;
-    newPlayer.id = data;
+    newPlayer.innerHTML = data.name;
+    newPlayer.id = data.id;
     playerList.appendChild(newPlayer);
 });
 
-socket.on('lobbyLeave', function(data) {
+socket.on('lobbyLeave', function (data) {
     console.log('lobbyLeave = ', data);
-    let deletePlayer = document.getElementById(data);
-    console.log(deletePlayer);
-    deletePlayer.remove();
+    if (!document.getElementById(data.id)) {
+        let deletePlayer = document.getElementById(data.id);
+        console.log(deletePlayer);
+        deletePlayer.remove();
+    }
+});
+
+socket.on('getPlayers', function (data) {
+    console.log(data);
+    for (let i = 0; i < data.length; i++) {
+        if (!document.getElementById(data[i].id)) {
+            let newPlayer = document.createElement("LI");
+            newPlayer.innerHTML = data[i].name;
+            newPlayer.id = data[i].id;
+            playerList.appendChild(newPlayer);
+        }
+    }
 });
 
 function getRoomCode() {
@@ -23,5 +37,5 @@ function getRoomCode() {
     let splitUrl = url.split("?")
     let roomCode = splitUrl[splitUrl.length - 1];
     console.log(roomCode);
-    return roomCode; 
+    return roomCode;
 }

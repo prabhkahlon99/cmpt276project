@@ -472,19 +472,31 @@ function onAuthorizationFail(data, message, error, accept) {
 io.on('connection', function (socket) {
   console.log("a user connected");
   socket.on('joinRoom', function (roomId) {
-    var user = roomManager.userJoin(socket.request.user.id, socket.request.user.name, roomId);
+    var user = roomManager.userJoin(socket.id, socket.request.user.name, roomId);
     socket.join(user.room);
     console.log(`a ${user.name} joined room ${user.room}`);
-    io.to(user.room).emit('lobbyJoin', user.name);
+    io.to(user.room).emit('lobbyJoin', user);
+    var roomPlayerList = io.sockets.adapter.rooms[user.room];
+    if (typeof roomPlayerList !== 'undefined') {
+      console.log(Object.keys(roomPlayerList.sockets));
+      let getPlayerList = Object.keys(roomPlayerList.sockets);
+      var usersInRoom = [];
+      for (let i = 0; i < getPlayerList.length; i++) {
+        if (getPlayerList[i] != socket.id) {
+          usersInRoom.push(roomManager.getUser(getPlayerList[i]));
+        }
+      }
+      io.to(socket.id).emit('getPlayers', usersInRoom);
+    }
   });
   socket.on('disconnect', function () {
     console.log(socket.request.user);
-    console.log(socket.request.user.id);
-    var user = roomManager.userLeave(socket.request.user.id);
+    console.log(socket.id);
+    var user = roomManager.userLeave(socket.id);
     console.log(user);
-    if(user) {
+    if (user) {
       console.log(`a ${user.name} disconnected`);
-      io.to(user.room).emit('lobbyLeave', user.name);
+      io.to(user.room).emit('lobbyLeave', user);
     }
   });
 });
