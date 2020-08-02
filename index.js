@@ -17,8 +17,8 @@ const { Pool } = require('pg');
 var pool;
 pool = new Pool({
   //connectionString: 'postgres://postgres:2590@localhost/logindb'
-  connectionString: process.env.DATABASE_URL
-  //connectionString: 'postgres://postgres:root@localhost:5432/logindb'
+  //connectionString: process.env.DATABASE_URL
+  connectionString: 'postgres://postgres:root@localhost:5432/logindb'
 })
 
 var app = express();
@@ -132,6 +132,22 @@ app.get('/home', (req, res) => {
   }
   else {
     res.send("not authenticated");
+  }
+});
+
+const roomManager = require('./utils/ioManager.js');
+app.get('/createroom', (req, res) => {
+  var roomString = roomManager.generateNewRoom();
+  res.redirect(`/room.html?${roomString}`);
+});
+
+app.get('/joinroom', (req, res) => {
+  var roomId = req.query.roomCodeName;
+  if (isRoom(roomId)) {
+    res.redirect(`/room.html?${roomId}`);
+  }
+  else {
+    res.send("Room does not exist.");
   }
 });
 
@@ -426,6 +442,7 @@ function checkDAuthenticated(req, res, next) {
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 var io = require('socket.io').listen(server);
 var passportIo = require('passport.socketio');
+const { isRoom } = require('./utils/ioManager.js');
 
 //Socket.io
 io.use(passportIo.authorize({
@@ -446,7 +463,7 @@ function onAuthorizationFail(data, message, error, accept) {
   //console.log(data);
   //console.log(accept);
   console.log("Connection rejected");
-  if(error) {
+  if (error) {
     accept(new Error(message));
   }
 }
@@ -454,11 +471,21 @@ function onAuthorizationFail(data, message, error, accept) {
 
 io.on('connection', function (socket) {
   console.log("a user connected");
-
-  console.log(socket.request.user);
-  io.sockets.emit('names', socket.request.user.name);
+  socket.on('joinRoom', function (roomId) {
+    var user = roomManager.userJoin(socket.request.user.id, socket.request.user.name, roomId);
+    socket.join(user.room);
+    console.log(`a ${user.name} joined room ${user.room}`);
+    io.to(user.room).emit('lobbyJoin', user.name);
+  });
   socket.on('disconnect', function () {
-    console.log("a user disconnected");
+    console.log(socket.request.user);
+    console.log(socket.request.user.id);
+    var user = roomManager.userLeave(socket.request.user.id);
+    console.log(user);
+    if(user) {
+      console.log(`a ${user.name} disconnected`);
+      io.to(user.room).emit('lobbyLeave', user.name);
+    }
   });
 });
 
