@@ -489,6 +489,12 @@ io.on('connection', function (socket) {
       io.to(socket.id).emit('getPlayers', usersInRoom);
     }
   });
+  socket.on('joinGame', function (roomId) {
+    var user = roomManager.userJoin(socket.id, socket.request.user.name, roomId);
+    socket.join(user.room);
+    console.log(`a ${user.name} joined game ${user.room}`);
+    io.to(user.room).emit('gameJoin', user);
+  });
   socket.on('playGame', function(readyPlayers) {
     //TODO check if everyone is ready then go
     io.in(roomManager.getUser(socket.id).room).emit('game-start');
@@ -501,11 +507,10 @@ io.on('connection', function (socket) {
     if (user) {
       console.log(`a ${user.name} disconnected`);
       io.to(user.room).emit('lobbyLeave', user);
+      console.log(io.sockets.adapter.rooms[user.room]);
     }
+    
   });
-  if((io.sockets.adapter.rooms[user.room].length) == 0) {
-    roomManager.removeRoom(roomManager.getUser(socket.id).room);
-  }
 });
 
 module.exports = app;
