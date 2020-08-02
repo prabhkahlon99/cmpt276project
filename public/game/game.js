@@ -26,6 +26,7 @@ var config = {
 var temperature
 
 var controls;
+var keys;
 var keySpace;
 var playerVelocityModifier = 0;
 var worldHeight;
@@ -40,8 +41,12 @@ function preload() {
     this.load.image('cloudyGrey', 'assets/cloudygrey.png')
     this.load.image('rainyGrey', 'assets/rainygrey.png')
     this.load.image('elsePink', 'assets/elsePink.png')
-
+    this.load.image('blueMinimalClouds', 'assets/blueMinimalClouds.png')
+    this.load.image('orangeCloudy', 'assets/orangeCloudy.png')
+    this.load.image('grassPlatform', 'assets/test.png')
+    this.load.image('purpleCloud', 'assets/purpleCloud.png')
     this.load.spritesheet('monsterCharacter', 'assets/monsterCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
+
     this.load.image('ground', 'assets/platform.png');
     this.load.image('powerupWater', 'assets/temp_bottle.png');
     this.load.image('weapon', 'assets/axe.png');
@@ -70,11 +75,14 @@ function create() {
     
     if (temperature >= 15 && clouds < 20 && status == "Clear") {
         this.add.image(400,300,'clearBlue')
+        //platforms.create(100,200, 'grassPlatform').setScale(3);
+
     }
 
 
     else if (temperature >= 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(400,300, 'cloudyBlue')
+        this.add.image(400,300, 'blueMinimalClouds').setScale(2.75)
+        
     }
 
     else if (temperature < 15 && clouds < 20 && status == "Clear") {
@@ -82,7 +90,7 @@ function create() {
     }
 
     else if (temperature < 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(400,300,'cloudyGrey')
+        this.add.image(400,300,'orangeCloudy').setScale(3.75)
     }
 
     else if (status == "Drizzle" || status == "Rain") {
@@ -139,11 +147,11 @@ function create() {
     platforms.create(400, 568, 'ground').setScale(2).refreshBody();
     
     //Platform Air
-    platforms.create(600,450, 'ground');
-    platforms.create(30, 400, 'ground');
+    platforms.create(600,450, 'grassPlatform');
+    platforms.create(30, 400, 'purpleCloud');
     platforms.create(-150, 350, 'ground');
-    platforms.create(200, 300, 'ground').setScale(0.40).refreshBody();
-    platforms.create(350,515, 'ground').setScale(0.65).refreshBody();
+    platforms.create(200, 300, 'grassPlatform').setScale(0.40).refreshBody();
+    platforms.create(350,515, 'grassPlatform').setScale(0.65).refreshBody();
 
 
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
@@ -191,20 +199,32 @@ function create() {
     this.viking = viking;
 }
 
+
 function update() {
     controls = this.controls
+    this.inputKeys = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        upSpace: Phaser.Input.Keyboard.KeyCodes.SPACEBAR,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+
+    })
+
+
     viking = this.viking
-    if (controls.left.isDown) {
+    if (controls.left.isDown || this.inputKeys.left.isDown) {
         viking.setVelocityX(-100 - playerVelocityModifier);
         this.viking.anims.play('left', true);
     }
+
     
-    else if (controls.right.isDown) {
+    else if (controls.right.isDown || this.inputKeys.right.isDown) {
         viking.setVelocityX(100 + playerVelocityModifier);
         this.viking.anims.play('right', true);
     } 
 
-    else if (controls.down.isDown) {
+    else if (controls.down.isDown || this.inputKeys.down.isDown) {
         viking.setVelocityY(200 + playerVelocityModifier)
     }
     
@@ -212,7 +232,7 @@ function update() {
         viking.setVelocityX(0);
     }
 
-    if (controls.up.isDown && viking.body.touching.down) {
+    if ((controls.up.isDown || this.inputKeys.up.isDown) && viking.body.touching.down) {
         viking.setVelocityY(-200 - playerVelocityModifier); //Change this value and all other movement values later. Have some more realistic and controllable X axis movements. THEN also change platform heights.
     }
 
