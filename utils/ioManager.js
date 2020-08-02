@@ -13,6 +13,14 @@ function generateNewRoom() {
     return result;
 }
 
+function removeRoom(roomId) {
+    var tempIndex = rooms.findIndex(room => room === roomId);
+    console.log(tempIndex);
+    if(tempIndex != -1) {
+        return rooms.splice(tempIndex, 1)[0];
+    }
+}
+
 function isRoom(id) {
     var result = "";
     result = rooms.find(room => room === id);

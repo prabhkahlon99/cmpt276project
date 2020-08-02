@@ -13,7 +13,7 @@ socket.on('lobbyJoin', function (data) {
 
 socket.on('lobbyLeave', function (data) {
     console.log('lobbyLeave = ', data);
-    if (!document.getElementById(data.id)) {
+    if (document.getElementById(data.id)) {
         let deletePlayer = document.getElementById(data.id);
         console.log(deletePlayer);
         deletePlayer.remove();
@@ -31,6 +31,18 @@ socket.on('getPlayers', function (data) {
         }
     }
 });
+
+socket.on('game-start', function() {
+    goToGame();
+});
+
+function playGame() {
+    socket.emit('playGame');
+}
+
+function goToGame() {
+    window.location.replace("game.html?" + getRoomCode());
+}
 
 function getRoomCode() {
     let url = window.location.href;

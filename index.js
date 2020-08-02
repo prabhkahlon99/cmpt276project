@@ -61,9 +61,9 @@ app.get("/delete", (req, res) => {
 });
 
 
-//renders to the game main page in the views/pages.
+//renders to the room (game) main page in the views/pages.
 app.get("/gamehome", (req, res) => {
-  res.redirect(301, "game.html");
+  res.redirect(301, "menu.html");
 });
 
 app.get("/adminlogin", checkNAuthenticated, (req, res) => {
@@ -489,6 +489,10 @@ io.on('connection', function (socket) {
       io.to(socket.id).emit('getPlayers', usersInRoom);
     }
   });
+  socket.on('playGame', function(readyPlayers) {
+    //TODO check if everyone is ready then go
+    io.in(roomManager.getUser(socket.id).room).emit('game-start');
+  });
   socket.on('disconnect', function () {
     console.log(socket.request.user);
     console.log(socket.id);
@@ -499,6 +503,9 @@ io.on('connection', function (socket) {
       io.to(user.room).emit('lobbyLeave', user);
     }
   });
+  if((io.sockets.adapter.rooms[user.room].length) == 0) {
+    roomManager.removeRoom(roomManager.getUser(socket.id).room);
+  }
 });
 
 module.exports = app;
