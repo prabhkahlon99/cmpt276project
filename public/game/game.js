@@ -1,5 +1,6 @@
 //TODO clean up code this is hard to read :/
 
+//Phaser stuff
 var config = {
     type: Phaser.AUTO,
     scale: {
@@ -108,8 +109,32 @@ function create() {
     //this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
     var mainCharacterRows = 13;
 
+    //Socket IO stuff
+    this.socket = io();
+
+    this.socket.emit('joinGame', getRoomCode());
+    this.socket.on('gameJoin', function(data) {
+        //console.log('connected');
+    });
+
     //Adding main character to game
-    var viking = this.physics.add.sprite(100, 500, 'mainCharacter', 6 * (mainCharacterRows) + (7)); // Initially Places the Viking 
+    var self = this;
+    var viking = self.physics.add.sprite(100, 500, 'mainCharacter', 6 * (mainCharacterRows) + (7)); // Initially Places the Viking 
+    console.log(this.socket);
+    this.socket.on('listOfPlayers', function(players) {
+        //console.log("hello server?")
+        Object.keys(players).forEach(function (id) {
+            //console.log(players[id]);
+            //console.log(self.socket.id);
+            if(players[id].roomId == getRoomCode()) {
+                if(players[id].playerId != self.socket.id) {
+                    self.physics.add.sprite(400, players[id].y + Math.floor(Math.random(10)), 'mainCharacter', 6 * (mainCharacterRows) + (7));
+                }
+            }
+        });
+    });
+
+    this.viking = viking; 
     
     //Adding monster to game
     this.monster = this.physics.add.sprite(200, 265, 'monsterCharacter', 11 * (mainCharacterRows) + 0);
@@ -317,7 +342,6 @@ function create() {
     this.monster.anims.play('monsterRight', true);
     this.skeleton.anims.play('skeletonRight', true);
     this.lizard.anims.play('lizardLeft', true);
-    this.viking = viking;
 }
 
 
@@ -332,8 +356,7 @@ function update() {
 
     })
 
-
-    viking = this.viking
+    viking = this.viking;
     if (controls.left.isDown || this.inputKeys.left.isDown) {
         viking.setVelocityX(-100 - playerVelocityModifier);
         this.viking.anims.play('left', true);
@@ -483,6 +506,15 @@ function destroyViking() {
     }
 }
 */
+
+function getRoomCode() {
+    let url = window.location.href;
+    let splitUrl = url.split("?")
+    let roomCode = splitUrl[splitUrl.length - 1];
+    //console.log(roomCode);
+    return roomCode;
+}
+
 var game = new Phaser.Game(config);
 
 

@@ -442,6 +442,7 @@ function checkDAuthenticated(req, res, next) {
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 var io = require('socket.io').listen(server);
 var passportIo = require('passport.socketio');
+const playerManager = require('./utils/playerManager.js');
 const { isRoom } = require('./utils/ioManager.js');
 
 //Socket.io
@@ -491,9 +492,13 @@ io.on('connection', function (socket) {
   });
   socket.on('joinGame', function (roomId) {
     var user = roomManager.userJoin(socket.id, socket.request.user.name, roomId);
+    playerManager.addPlayer(socket.id, roomId);
     socket.join(user.room);
     console.log(`a ${user.name} joined game ${user.room}`);
     io.to(user.room).emit('gameJoin', user);
+    socket.emit('listOfPlayers', playerManager.getPlayerList());
+    console.log('player = ', playerManager.getPlayerList());
+    io.to(user.room).emit('playerJoin', playerManager.getPlayer(socket.id));
   });
   socket.on('playGame', function(readyPlayers) {
     //TODO check if everyone is ready then go
@@ -503,13 +508,13 @@ io.on('connection', function (socket) {
     console.log(socket.request.user);
     console.log(socket.id);
     var user = roomManager.userLeave(socket.id);
+    playerManager.removePlayer(socket.id);
     console.log(user);
     if (user) {
       console.log(`a ${user.name} disconnected`);
       io.to(user.room).emit('lobbyLeave', user);
       console.log(io.sockets.adapter.rooms[user.room]);
     }
-    
   });
 });
 
