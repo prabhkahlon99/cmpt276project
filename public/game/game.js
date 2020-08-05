@@ -54,7 +54,7 @@ function preload() {
     this.load.image('ground', 'assets/platform.png');
     this.load.image('powerupWater', 'assets/temp_bottle.png');
     this.load.image('weapon', 'assets/axe.png');
-
+    this.score = 0;
 }
 
 function create() {
@@ -212,6 +212,7 @@ function create() {
     platforms.create(350, 515, 'grassPlatform').setScale(0.65).refreshBody();
 
 
+    this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
     // Viking Animations:
     this.anims.create({
@@ -359,6 +360,10 @@ function create() {
     this.monster.anims.play('monsterRight', true);
     this.skeleton.anims.play('skeletonRight', true);
     this.lizard.anims.play('lizardLeft', true);
+
+    this.monster.isDead = false;
+    this.skeleton.isDead = false;
+    this.lizard.isDead = false;
 }
 
 
@@ -448,6 +453,7 @@ function update() {
             }
         }
     });
+    
 }
 
 //Destroys powerUp on pick up and adds attributes to player.
@@ -490,10 +496,14 @@ function destroyWeapon(body) {
 }
 
 function destroyMonster() {
+    if(this.monster.isDead){
+        return;
+    }
+    this.monster.isDead = true;
     this.monster.anims.play('monsterDeath', true);
     this.monster.setVelocity(0);
     var timer = this.time.delayedCall(800, despawnMonster, [], this);
-    //this.monster.destroy();
+    var timer = this.time.delayedCall(800, monsterScore, [], this);
 }
 
 //helper function
@@ -502,9 +512,16 @@ function despawnMonster() {
 }
 
 function destroySkeleton() {
+    if(this.skeleton.isDead){
+        return;
+    }
+    this.skeleton.isDead = true;
+
     this.skeleton.anims.play('skeletonDeath', true);
     this.skeleton.setVelocity(0);
     var timer = this.time.delayedCall(800, despawnSkeleton, [], this);
+    var timer = this.time.delayedCall(800, monsterScore, [], this);
+    
 }
 
 //helper function
@@ -513,14 +530,26 @@ function despawnSkeleton() {
 }
 
 function destroyLizard() {
+    if(this.lizard.isDead){
+        return;
+    }
+    this.lizard.isDead = true;
     this.lizard.anims.play('lizardDeath', true);
     this.lizard.setVelocity(0);
     var timer = this.time.delayedCall(800, despawnLizard, [], this);
+    var timer = this.time.delayedCall(800, monsterScore, [], this);
+    
 }
 
 //helper function
 function despawnLizard() {
     this.lizard.destroy();
+}
+
+function monsterScore(){
+        this.score = this.score+100;
+        this.scoreText.setText('Score: ' + this.score);
+    
 }
 /*
 function destroyViking() {
