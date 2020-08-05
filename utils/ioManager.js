@@ -4,7 +4,7 @@ var users = [];
 
 function generateNewRoom() {
     var result = crypto.randomBytes(5).toString('Hex');
-    console.log(result);
+    //console.log(result);
     while(!isRoom(result)) {
         result = crypto.randomBytes(5).toString('Hex');
     }
@@ -15,7 +15,7 @@ function generateNewRoom() {
 
 function removeRoom(roomId) {
     var tempIndex = rooms.findIndex(room => room === roomId);
-    console.log(tempIndex);
+    //console.log(tempIndex);
     if(tempIndex != -1) {
         return rooms.splice(tempIndex, 1)[0];
     }
@@ -24,7 +24,7 @@ function removeRoom(roomId) {
 function isRoom(id) {
     var result = "";
     result = rooms.find(room => room === id);
-    console.log("result = ", result);
+    //console.log("result = ", result);
     if (result === "") {
         return false;
     }
@@ -45,7 +45,7 @@ function getUser(id) {
 
 function userLeave(id) {
     var tempIndex = users.findIndex(user => user.id === id);
-    console.log(tempIndex);
+    //console.log(tempIndex);
     if(tempIndex != -1) {
         return users.splice(tempIndex, 1)[0];
     }

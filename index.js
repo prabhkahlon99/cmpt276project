@@ -479,7 +479,7 @@ io.on('connection', function (socket) {
     io.to(user.room).emit('lobbyJoin', user);
     var roomPlayerList = io.sockets.adapter.rooms[user.room];
     if (typeof roomPlayerList !== 'undefined') {
-      console.log(Object.keys(roomPlayerList.sockets));
+      //console.log(Object.keys(roomPlayerList.sockets));
       let getPlayerList = Object.keys(roomPlayerList.sockets);
       var usersInRoom = [];
       for (let i = 0; i < getPlayerList.length; i++) {
@@ -494,27 +494,31 @@ io.on('connection', function (socket) {
     var user = roomManager.userJoin(socket.id, socket.request.user.name, roomId);
     playerManager.addPlayer(socket.id, roomId);
     socket.join(user.room);
-    console.log(`a ${user.name} joined game ${user.room}`);
-    io.to(user.room).emit('gameJoin', user);
+    //console.log(`a ${user.name} joined game ${user.room}`);
     socket.emit('listOfPlayers', playerManager.getPlayerList());
-    console.log('player = ', playerManager.getPlayerList());
-    io.to(user.room).emit('playerJoin', playerManager.getPlayer(socket.id));
+    //console.log('player = ', playerManager.getPlayerList());
+    socket.to(user.room).emit('playerJoin', playerManager.getPlayer(socket.id));
   });
   socket.on('playGame', function(readyPlayers) {
     //TODO check if everyone is ready then go
     io.in(roomManager.getUser(socket.id).room).emit('game-start');
   });
   socket.on('disconnect', function () {
-    console.log(socket.request.user);
-    console.log(socket.id);
+    //console.log(socket.request.user);
+    //console.log(socket.id);
     var user = roomManager.userLeave(socket.id);
     playerManager.removePlayer(socket.id);
-    console.log(user);
+    //console.log(user);
     if (user) {
       console.log(`a ${user.name} disconnected`);
       io.to(user.room).emit('lobbyLeave', user);
-      console.log(io.sockets.adapter.rooms[user.room]);
+      //console.log(io.sockets.adapter.rooms[user.room]);
     }
+  });
+  socket.on('playerMoved', function(playerPosition) {
+    playerManager.setPlayerX(socket.id, playerPosition.x);
+    playerManager.setPlayerY(socket.id, playerPosition.y);
+    socket.to(playerPosition.roomId).emit('movePlayer', playerManager.getPlayer(socket.id));
   });
 });
 

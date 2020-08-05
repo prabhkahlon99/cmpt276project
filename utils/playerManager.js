@@ -17,8 +17,16 @@ function getPlayerList() {
     return players;
 }
 
+function setPlayerX(id, xPos) {
+    players[id].x = xPos;
+}
+
+function setPlayerY(id, yPos) {
+    players[id].y = yPos;
+}
+
 function removePlayer(id) {
     delete players[id];
 }
 
-module.exports = {addPlayer, getPlayer, getPlayerList, removePlayer};
+module.exports = { addPlayer, getPlayer, getPlayerList, setPlayerX, setPlayerY, removePlayer };
