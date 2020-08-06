@@ -511,6 +511,12 @@ io.on('connection', function (socket) {
   socket.on('playGame', function(readyPlayers) {
     //TODO check if everyone is ready then go
     io.in(roomManager.getUser(socket.id).room).emit('game-start');
+    var room = roomManager.getUser(socket.id).room
+    setTimeout(function() {
+      console.log('over');
+      console.log(room);
+      io.in(room).emit('game-over');
+    }, 130000); 
   });
   socket.on('disconnect', function () {
     //console.log(socket.request.user);
@@ -535,6 +541,12 @@ io.on('connection', function (socket) {
     position = axeInfo.position;
     id = axeInfo.id;
     socket.to(roomManager.getUser(socket.id).room).emit('axeThrow', {position, id});
+  });
+  socket.on('killed', function() {
+    socket.to(roomManager.getUser(socket.id).room).emit('playerKilled', socket.id);
+  });
+  socket.on('respawn', function() {
+    socket.to(roomManager.getUser(socket.id).room).emit('playerRespawn', socket.id);
   });
 });
 

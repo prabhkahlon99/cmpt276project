@@ -85,26 +85,28 @@ function create() {
 
 
     else if (temperature >= 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(800, 400, 'blueMinimalClouds').setScale(4.2) // DONE
+        this.add.image(800, 400, 'blueMinimalClouds').setScale(4.2); // DONE
     }
 
     else if (temperature < 15 && clouds < 20 && status == "Clear") {
-        this.add.image(800, 400, 'clearGrey').setScale(4.5) // DONE
+        this.add.image(800, 400, 'clearGrey').setScale(4.5); // DONE
     }
 
     else if (temperature < 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(800, 400, 'orangeCloudy').setScale(6) // DONE
+        this.add.image(800, 400, 'orangeCloudy').setScale(6); // DONE
     }
 
     else if (status == "Drizzle" || status == "Rain") {
-        this.add.image(800, 400, 'orangeRainy').setScale(6) // Done
+        this.add.image(800, 400, 'orangeRainy').setScale(6); // Done
     }
 
     else {
-        this.add.image(800, 400, 'elsePink').setScale(0.25)
+        this.add.image(800, 400, 'elsePink').setScale(0.25);
     }
     // if (temperature >= 15 && )
-
+    this.gameOverText = this.add.text(800, 400, 'GAME OVER', {fontSize: '64px', fill: '#000'});
+    this.gameOverText.setOrigin(0.5);
+    this.gameOverText.visible = false;
     //this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
     var mainCharacterRows = 13;
 
@@ -120,6 +122,7 @@ function create() {
     var self = this;
     this.socket.on('spawnPos', function (player) {
         self.viking.setPosition(player.x, player.y);
+        spawnPosition = [player.x, player.y];
     });
 
     this.socket.on('listOfPlayers', function (players) {
@@ -148,6 +151,7 @@ function create() {
                 if (otherPlayer.id == player.playerId) {
                     otherPlayer.setVisible(false);
                     otherPlayer.setActive(false);
+                    otherPlayer.destroy();
                 }
             });
         }
@@ -165,6 +169,32 @@ function create() {
         throwOtherAxe(axeInfo.position, axeInfo.id, self);
     });
 
+    self.socket.on('playerKilled', function (id) {
+        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+            if (id == otherPlayer.id) {
+                otherPlayer.setActive(false);
+                otherPlayer.setVisible(false);
+                otherPlayer.body.enable = false;
+                self.time.delayedCall(2000, vikingRespawn, [], self);
+            }
+        });
+    });
+
+    self.socket.on('playerRespawn', function (id) {
+        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+            if (id == otherPlayer.id) {
+                otherPlayer.setPosition(spawnPosition[0], spawnPosition[1]);
+                otherPlayer.body.enable = true;
+                otherPlayer.setActive(true);
+                otherPlayer.setVisible(true);
+            }
+        });
+    });
+
+    this.socket.on('game-over', function() {
+        gameOver();
+    });
+
     //Adding monster to game
     //this.monster = this.physics.add.sprite(200, 265, 'monsterCharacter', 11 * (mainCharacterRows) + 0);
     this.enemies = this.physics.add.group();
@@ -172,7 +202,7 @@ function create() {
     var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
     var monsterSpawnX = [200, 450, 600];
     var monsterSpawnY = [265, 400, 400];
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 4; i++) {
         let randomSpawn = Math.floor(Math.random(monsterSpawnX.length) * monsterSpawnX.length)
         let randomType = monsterTypes[Math.floor(Math.random(monsterTypes.length) * monsterTypes.length)];
         let newEnemy = this.add.sprite(monsterSpawnX[randomSpawn], monsterSpawnY[randomSpawn], randomType, 11 * (mainCharacterRows) + 0);
@@ -242,7 +272,8 @@ function create() {
             destroyEarly(axe);
         }
     });;
-    this.physics.add.collider(this.otherAxes, this.viking, function (axe, viking) {
+    this.physics.add.collider(this.otherAxes, this.viking, function (viking, axe) {
+        console.log(axe);
         destroyEarly(axe);
         reduceHealth();
     });
@@ -476,10 +507,13 @@ function create() {
 
 
     this.viking.isBeingAttacked = false;
+
     
     this.initialTime = 120;
     timeText = this.add.text(1400, 16, 'Countdown: ' + formatTime(this.initialTime));
     timedEvent = this.time.addEvent({ delay: 1000, callback: onEvent, callbackScope: this, loop: true});
+    //timerTest = this.time.delayedCall(3000, gameOver, [], this); //COMMENT THIS OUT IF NOT TESTING
+
     
 }
 
@@ -678,10 +712,10 @@ function throwAxe(pointer) { // Allows the acces of the space key to create a fl
         axe.numCollisions = 0;
         axe.setBounce(1);
         this.physics.moveToObject(axe, pointer, 400);
+        let id = this.socket.id;
+        let position = [pointer.x, pointer.y];
+        this.socket.emit('throwAxe', { position, id });
     }
-    let id = this.socket.id;
-    let position = [pointer.x, pointer.y];
-    this.socket.emit('throwAxe', { position, id });
 }
 
 function throwOtherAxe(position, otherVikingId, self) {
@@ -719,6 +753,7 @@ function destroyEarly(axe) {
     if (weapon) {
         weapon.setActive(false);
         weapon.setVisible(false);
+        weapon.setPosition(0,0);
     }
 }
 
@@ -777,41 +812,41 @@ function vikingDamage(viking, enemy) {
         return;
     }
     self.viking.isBeingAttacked = true;
-        if (enemy.isDead) {
-            return;
-        }
-        if (!enemy.body.touching.none) {
-            if (enemy.type == 'monsterCharacter') {
-                enemy.body.setVelocityX(0);
-                enemy.isAttacking = true;
-                if (enemy.x > self.viking.x) {
-                    enemy.anims.play('monsterAttackLeft', true);
-                }
-                else {
-                    enemy.anims.play('monsterAttackRight', true);
-                }
+    if (enemy.isDead) {
+        return;
+    }
+    if (!enemy.body.touching.none) {
+        if (enemy.type == 'monsterCharacter') {
+            enemy.body.setVelocityX(0);
+            enemy.isAttacking = true;
+            if (enemy.x > self.viking.x) {
+                enemy.anims.play('monsterAttackLeft', true);
             }
-            if (enemy.type == 'skeleton') {
-                enemy.isAttacking = true;
-                enemy.body.setVelocityX(0);
-                if (enemy.x > self.viking.x) {
-                    enemy.anims.play('skeletonShootArrowLeft', true);
-                }
-                else {
-                    enemy.anims.play('skeletonShootArrowRight', true);
-                }
-            }
-            if (enemy.type == 'lizard') {
-                enemy.isAttacking = true;
-                enemy.body.setVelocityX(0);
-                if (enemy.x > self.viking.x) {
-                    enemy.anims.play('lizardAttackLeft', true);
-                }
-                else {
-                    enemy.anims.play('lizardAttackRight', true);
-                }
+            else {
+                enemy.anims.play('monsterAttackRight', true);
             }
         }
+        if (enemy.type == 'skeleton') {
+            enemy.isAttacking = true;
+            enemy.body.setVelocityX(0);
+            if (enemy.x > self.viking.x) {
+                enemy.anims.play('skeletonShootArrowLeft', true);
+            }
+            else {
+                enemy.anims.play('skeletonShootArrowRight', true);
+            }
+        }
+        if (enemy.type == 'lizard') {
+            enemy.isAttacking = true;
+            enemy.body.setVelocityX(0);
+            if (enemy.x > self.viking.x) {
+                enemy.anims.play('lizardAttackLeft', true);
+            }
+            else {
+                enemy.anims.play('lizardAttackRight', true);
+            }
+        }
+    }
     var timer = self.time.delayedCall(500, reduceHealth, [], self);
     var timer = self.time.delayedCall(1500, vikingDamageHelper, [], self);
     let deathTimer = self.time.delayedCall(1000, delayMonsterDeath, [enemy], self);
@@ -861,33 +896,41 @@ function vikingDamageHelper() {
 }
 
 function reduceHealth() {
-    this.viking.hearts--;
-    if (this.viking.hearts <= 0) {
-        this.viking.hearts = 3;
+    var self = game.scene.scenes[0];
+    self.viking.hearts--;
+    if (self.viking.hearts <= 0) {
+        self.viking.hearts = 3;
         vikingKilled();
     }
-    this.viking.heart_healths = this.add.sprite(735, 24, 'heart_healths', (3 - this.viking.hearts));
+    self.viking.heart_healths = self.add.sprite(735, 24, 'heart_healths', (3 - this.viking.hearts));
 }
 
 function vikingKilled() {
-    this.socket.emit('killed');
-    this.viking.setActive(false);
-    this.viking.setVisible(false);
-    this.time.delayedCall(2000, vikingRespawn, [], this);
+    var self = game.scene.scenes[0];
+    self.socket.emit('killed');
+    self.viking.setActive(false);
+    self.viking.setVisible(false);
+    self.viking.body.enable = false;
+    self.time.delayedCall(2000, vikingRespawn, [], self);
 }
 
 function vikingRespawn() {
-    this.socket.emit('respawn');
-    this.viking.setPosition(spawnPosition);
-    this.viking.setActive(true);
-    this.viking.setVisible(true);
+    var self = game.scene.scenes[0];
+    self.socket.emit('respawn');
+    self.viking.setPosition(spawnPosition[0], spawnPosition[1]);
+    self.viking.body.enable = true;
+    self.viking.setActive(true);
+    self.viking.setVisible(true);
 }
 
 
 
 
 function gameOver() {
-    this.scene.pause;
+    var self = game.scene.scenes[0];
+    self.gameOverText.setVisible(true);
+    console.log(self);
+    self.scene.pause();
 }
 
 function getRoomCode() {
