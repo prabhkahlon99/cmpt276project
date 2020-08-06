@@ -13,7 +13,7 @@ var config = {
     physics: {
         default: "arcade",
         arcade: {
-            gravity: {y: 250},
+            gravity: { y: 250 },
             debug: false // set to true to see sprite hitbox etc
         }
     },
@@ -60,7 +60,7 @@ function preload() {
 }
 
 function create() {
-    
+
     $.ajax({
         async: false,
         url: 'https://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric',
@@ -82,29 +82,29 @@ function create() {
     //console.log(status)
 
     if (temperature >= 15 && clouds < 20 && status == "Clear") {
-        this.add.image(800,400,'clearBlue').setScale(0.25) // DONE
+        this.add.image(800, 400, 'clearBlue').setScale(0.25) // DONE
 
     }
 
 
     else if (temperature >= 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(800,400, 'blueMinimalClouds').setScale(4.2) // DONE
+        this.add.image(800, 400, 'blueMinimalClouds').setScale(4.2) // DONE
     }
 
     else if (temperature < 15 && clouds < 20 && status == "Clear") {
-        this.add.image(800,400,'clearGrey').setScale(4.5) // DONE
+        this.add.image(800, 400, 'clearGrey').setScale(4.5) // DONE
     }
 
     else if (temperature < 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(800,400,'orangeCloudy').setScale(6) // DONE
+        this.add.image(800, 400, 'orangeCloudy').setScale(6) // DONE
     }
 
     else if (status == "Drizzle" || status == "Rain") {
-        this.add.image(800,400,'orangeRainy').setScale(6) // Done
+        this.add.image(800, 400, 'orangeRainy').setScale(6) // Done
     }
 
     else {
-        this.add.image(800,400,'elsePink').setScale(0.25)
+        this.add.image(800, 400, 'elsePink').setScale(0.25)
     }
     // if (temperature >= 15 && )
 
@@ -132,7 +132,7 @@ function create() {
                     console.log('others');
                     var otherPlayer = self.add.sprite(400, players[id].y + Math.floor(Math.random(10)), 'mainCharacter', 6 * (mainCharacterRows) + (7));
                     otherPlayer.id = players[id].playerId;
-                    
+
                     self.otherPlayers.add(otherPlayer);
                 }
             }
@@ -148,9 +148,9 @@ function create() {
     });
 
     this.socket.on('playerLeave', function (player) {
-        if(player.roomId == self.roomCode) {
+        if (player.roomId == self.roomCode) {
             self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-                if(otherPlayer.id == player.playerId) {
+                if (otherPlayer.id == player.playerId) {
                     otherPlayer.setVisible(false);
                     otherPlayer.setActive(false);
                 }
@@ -164,6 +164,11 @@ function create() {
                 otherPlayer.setPosition(playerPosition.x, playerPosition.y);
             }
         });
+    });
+
+    this.socket.on('axeThrow', function (axeInfo) {
+        console.log('axethrown toward ', axeInfo.position);
+        throwOtherAxe(axeInfo.position, axeInfo.id, self);
     });
 
     //Adding monster to game
@@ -198,12 +203,16 @@ function create() {
         defaultKey: 'weapon',
         maxSize: 3,
     });
+    this.otherAxes = this.physics.add.group({
+        defaultKey: 'weapon',
+        maxSize: 20,
+    });
 
-    console.log(this.axes);
+    //console.log(this.axes);
 
 
     var platforms = this.physics.add.staticGroup(); // Implments Physics
-    
+
 
     this.physics.add.collider(viking, platforms); // add collision for the ground/platforms
     viking.body.collideWorldBounds = true; // add collision for the side of the game (can't walk through it)
@@ -220,11 +229,15 @@ function create() {
     worldHeight = this.physics.world.bounds.height;
     worldWidth = this.physics.world.bounds.width;
     this.physics.add.collider(this.enemies, platforms);
-    this.physics.add.collider(this.axes, platforms, function(axe, platform) {
-        console.log(axe.numCollisions);
+    this.physics.add.collider(this.axes, platforms, function (axe, platform) {
         axe.numCollisions += 1;
-        console.log("bounce");
-        if(axe.numCollisions > 2) {
+        if (axe.numCollisions > 2) {
+            destroyEarly(axe);
+        }
+    });
+    this.physics.add.collider(this.otherAxes, platforms, function (axe, platform) {
+        axe.numCollisions += 1;
+        if (axe.numCollisions > 2) {
             destroyEarly(axe);
         }
     });
@@ -245,7 +258,7 @@ function create() {
 
     //Platform Ground
     platforms.create(800, 750, 'purpleCloud').setScale(2.75).refreshBody();
-    
+
     //Platform Air
     // platforms.create(600,450, 'grassPlatform');
     // platforms.create(30, 400, 'purpleCloud');
@@ -259,14 +272,15 @@ function create() {
     platforms.create(800, 330, 'purpleCloud').setScale(1.65).refreshBody();
 
     //moving platform
-    movingPlatform1 = this.physics.add.image(300,660, 'grassPlatform');
+    movingPlatform1 = this.physics.add.image(300, 660, 'grassPlatform');
     movingPlatform1.setImmovable(true);
     movingPlatform1.body.allowGravity = false;
     movingPlatform1.setVelocityX(100);
     this.physics.add.collider(this.viking, movingPlatform1);
     this.physics.add.collider(this.enemies, movingPlatform1);
     this.physics.add.collider(this.axes, movingPlatform1);
-    
+    this.physics.add.collider(this.otherAxes, movingPlatform1);
+
 
     movingPlatform2 = this.physics.add.image(400, 450, 'grassPlatform')
     movingPlatform2.setImmovable(true);
@@ -275,6 +289,7 @@ function create() {
     this.physics.add.collider(this.viking, movingPlatform2);
     this.physics.add.collider(this.enemies, movingPlatform2);
     this.physics.add.collider(this.axes, movingPlatform2);
+    this.physics.add.collider(this.otherAxes, movingPlatform2);
 
     movingPlatform3 = this.physics.add.image(1200, 450, 'grassPlatform')
     movingPlatform3.setImmovable(true);
@@ -283,6 +298,7 @@ function create() {
     this.physics.add.collider(this.viking, movingPlatform3);
     this.physics.add.collider(this.enemies, movingPlatform3);
     this.physics.add.collider(this.axes, movingPlatform3);
+    this.physics.add.collider(this.otherAxes, movingPlatform3);
 
     movingPlatform4 = this.physics.add.image(800, 200, 'grassPlatform')
     movingPlatform4.setImmovable(true);
@@ -291,6 +307,7 @@ function create() {
     this.physics.add.collider(this.viking, movingPlatform4);
     this.physics.add.collider(this.enemies, movingPlatform4);
     this.physics.add.collider(this.axes, movingPlatform4);
+    this.physics.add.collider(this.otherAxes, movingPlatform4);
 
     this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
@@ -318,7 +335,7 @@ function create() {
 
     this.anims.create({
         key: 'death',
-        frames: this.anims.generateFrameNumbers('mainCharacter', {start: 260, end: 265}),
+        frames: this.anims.generateFrameNumbers('mainCharacter', { start: 260, end: 265 }),
         frameRate: 12,
         repeat: 0
     });
@@ -475,41 +492,33 @@ function update() {
 
     })
 
-    if (movingPlatform1.x >= 1300)
-    {
+    if (movingPlatform1.x >= 1300) {
         movingPlatform1.setVelocityX(-100);
     }
-    else if (movingPlatform1.x <= 300)
-    {
+    else if (movingPlatform1.x <= 300) {
         movingPlatform1.setVelocityX(100);
     }
 
-    
-    if (movingPlatform2.x >= 600)
-    {
+
+    if (movingPlatform2.x >= 600) {
         movingPlatform2.setVelocityX(-200);
     }
-    else if (movingPlatform2.x <= 200)
-    {
+    else if (movingPlatform2.x <= 200) {
         movingPlatform2.setVelocityX(200);
     }
 
-    
-    if (movingPlatform3.x <= 1000)
-    {
+
+    if (movingPlatform3.x <= 1000) {
         movingPlatform3.setVelocityX(200);
     }
-    else if (movingPlatform3.x >= 1400)
-    {
+    else if (movingPlatform3.x >= 1400) {
         movingPlatform3.setVelocityX(-200);
     }
 
-    if (movingPlatform4.x >= 1300)
-    {
+    if (movingPlatform4.x >= 1300) {
         movingPlatform4.setVelocityX(-250);
     }
-    else if (movingPlatform4.x <= 300)
-    {
+    else if (movingPlatform4.x <= 300) {
         movingPlatform4.setVelocityX(250);
     }
 
@@ -519,7 +528,7 @@ function update() {
         this.viking.anims.play('left', true);
     }
 
-    
+
     else if (controls.right.isDown || this.inputKeys.right.isDown) {
         viking.setVelocityX(250 + playerVelocityModifier);
         this.viking.anims.play('right', true);
@@ -538,7 +547,7 @@ function update() {
     }
 
 
-    keySpace.on('down', function(key, event) {
+    keySpace.on('down', function (key, event) {
         if (viking.body.touching.down) {
             viking.setVelocityY(-260 - playerVelocityModifier);
         }
@@ -592,27 +601,27 @@ function update() {
             }
         }
         else if (enemy.body.velocity.x == 0) {
-            if(enemy.anims.currentAnim.key == 'monsterLeft') {
+            if (enemy.anims.currentAnim.key == 'monsterLeft') {
                 enemy.setVelocityX(100);
                 enemy.anims.play('monsterRight', true);
             }
-            else if(enemy.anims.currentAnim.key == 'monsterRight') {
+            else if (enemy.anims.currentAnim.key == 'monsterRight') {
                 enemy.setVelocityX(-100);
                 enemy.anims.play('monsterLeft', true);
             }
-            else if(enemy.anims.currentAnim.key == 'skeletonLeft') {
+            else if (enemy.anims.currentAnim.key == 'skeletonLeft') {
                 enemy.setVelocityX(100);
                 enemy.anims.play('skeletonRight', true);
             }
-            else if(enemy.anims.currentAnim.key == 'skeletonRight') {
+            else if (enemy.anims.currentAnim.key == 'skeletonRight') {
                 enemy.setVelocityX(-100);
                 enemy.anims.play('skeletonLeft', true);
             }
-            else if(enemy.anims.currentAnim.key == 'lizardLeft') {
+            else if (enemy.anims.currentAnim.key == 'lizardLeft') {
                 enemy.setVelocityX(100);
                 enemy.anims.play('lizardRight', true);
             }
-            else if(enemy.anims.currentAnim.key == 'lizardRight') {
+            else if (enemy.anims.currentAnim.key == 'lizardRight') {
                 enemy.setVelocityX(-100);
                 enemy.anims.play('lizardLeft', true);
             }
@@ -621,6 +630,15 @@ function update() {
 
     //Despawn weapon if it's off the screen.
     this.axes.children.each(function (axe) {
+        if (axe.active) {
+            if (axe.y < 0 || axe.y > worldHeight || axe.x < 0 || axe.x > worldWidth) {
+                //console.log("boom");
+                axe.setActive(false);
+            }
+        }
+    });
+    //Despawn weapon if it's off the screen.
+    this.otherAxes.children.each(function (axe) {
         if (axe.active) {
             if (axe.y < 0 || axe.y > worldHeight || axe.x < 0 || axe.x > worldWidth) {
                 //console.log("boom");
@@ -644,17 +662,51 @@ function resetPlayerVelocity() {
     playerVelocityModifier = 0;
 }
 
-function throwAxe(pointer) { // Allows the acces of the space key to create a flying axe //TODO fix velocity and despawn if outside screen
+function throwAxe(pointer) { // Allows the acces of the space key to create a flying axe
+    console.log(this);
     var vikingX = viking.getWorldTransformMatrix(new Phaser.GameObjects.Components.TransformMatrix()).decomposeMatrix().translateX;
     var vikingY = viking.getWorldTransformMatrix(new Phaser.GameObjects.Components.TransformMatrix()).decomposeMatrix().translateY;
     var axe = this.axes.get(vikingX, vikingY);
     if (axe) {
+        console.log(axe)
         axe.body.setAllowGravity(false);
         axe.setActive(true);
         axe.setVisible(true);
         axe.numCollisions = 0;
         axe.setBounce(1);
         this.physics.moveToObject(axe, pointer, 400);
+        console.log('transmit data');
+        //console.log(viking.body.velocity);
+        //axe.setVelocity(viking.body.velocity);
+    }
+    let id = this.socket.id;
+    let position = [pointer.x, pointer.y];
+    this.socket.emit('throwAxe', {position, id});
+}
+
+function throwOtherAxe(position, otherVikingId, self) {
+    console.log(self);
+    var vikingX;
+    var vikingY;
+    self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+        if (otherPlayer.id == otherVikingId) {
+            vikingX = otherPlayer.getWorldTransformMatrix(new Phaser.GameObjects.Components.TransformMatrix()).decomposeMatrix().translateX;
+            vikingY = otherPlayer.getWorldTransformMatrix(new Phaser.GameObjects.Components.TransformMatrix()).decomposeMatrix().translateY;
+            console.log(vikingX, vikingY);
+        }
+    });
+    var axe = self.otherAxes.get(vikingX, vikingY);
+    if (axe) {
+        axe.x = vikingX;
+        axe.y = vikingY;
+        console.log(axe);
+        axe.body.setAllowGravity(false);
+        axe.setActive(true);
+        axe.setVisible(true);
+        axe.numCollisions = 0;
+        axe.setBounce(1);
+        console.log(position[0]);
+        self.physics.moveTo(axe, position[0], position[1], 400);
         //console.log(viking.body.velocity);
         //axe.setVelocity(viking.body.velocity);
     }
@@ -685,7 +737,7 @@ function destroyEarly(axe) {
 }
 
 function checkAxeCollisions(axe, platform) {
-    if(axe.numCollisions > 2) {
+    if (axe.numCollisions > 2) {
         destroyWeapon(axe);
     }
 }
@@ -721,7 +773,6 @@ function destroyMonster() {
 }
 
 function delayMonsterDeath(monster) {
-    console.log("delay");
     monster.destroy();
 }
 

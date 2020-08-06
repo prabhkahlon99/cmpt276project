@@ -447,6 +447,7 @@ var passportIo = require('passport.socketio');
 //Manages players in a game instance
 const playerManager = require('./utils/playerManager.js');
 const { isRoom } = require('./utils/ioManager.js');
+const { authorize } = require('passport');
 
 //Get socket.io to use passport authentication
 io.use(passportIo.authorize({
@@ -528,6 +529,12 @@ io.on('connection', function (socket) {
     playerManager.setPlayerX(socket.id, playerPosition.x);
     playerManager.setPlayerY(socket.id, playerPosition.y);
     socket.to(playerPosition.roomId).emit('movePlayer', playerManager.getPlayer(socket.id));
+  });
+  socket.on('throwAxe', function(axeInfo) {
+    console.log(axeInfo.position);
+    position = axeInfo.position;
+    id = axeInfo.id;
+    socket.to(roomManager.getUser(socket.id).room).emit('axeThrow', {position, id});
   });
 });
 
