@@ -25,12 +25,10 @@ body{
 
 #roomCode{
   border:2px solid black;
-  outline: none;
   background: white;
   color: black;
   font-size: 18px;
   width: 80%;
-
   margin: 0 10px;
   border-radius: 5%;
 }
@@ -38,4 +36,8 @@ body{
 .instructions{
   width: 200%;
   font-size: 18px;
+}
+
+.or{
+  font-size: 30px;
 }
