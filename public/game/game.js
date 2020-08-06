@@ -168,6 +168,7 @@ function create() {
     //Adding monster to game
     //this.monster = this.physics.add.sprite(200, 265, 'monsterCharacter', 11 * (mainCharacterRows) + 0);
     this.enemies = this.physics.add.group();
+    this.enemies.monsterCount = 0;
     var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
     var monsterSpawnX = [200, 450, 600];
     var monsterSpawnY = [265, 400, 400];
@@ -178,7 +179,9 @@ function create() {
         newEnemy.isDead = false;
         newEnemy.type = randomType
         newEnemy.isAttacking = false;
+        
         this.enemies.add(newEnemy);
+        this.enemies.monsterCount++;
     }
 
     //Adding skeleton to game
@@ -215,17 +218,11 @@ function create() {
 
     //Allows player to pick up water bottle power up
     var bottleCollider = this.physics.add.overlap(viking, waterBottle, powerUpWater.bind(this));
-    //var monsterCollider = this.physics.add.overlap(this.axes, this.monster, destroyMonster.bind(this));
-    //var skeletonCollider = this.physics.add.overlap(this.axes, this.skeleton, destroySkeleton.bind(this));
-    //var lizardCollider = this.physics.add.overlap(this.axes, this.lizard, destroyLizard.bind(this));
-    //var monsterDamageCollider = this.physics.add.overlap(viking, this.monster, monsterDamage.bind(this));
-    //var lizardDamageCollider = this.physics.add.overlap(viking, this.lizard, lizardDamage.bind(this));
+
     this.physics.add.overlap(viking, this.enemies, vikingDamage);
 
     this.physics.add.overlap(this.axes, this.enemies, destroyMonster);
-    //var skeletonCollider = this.physics.add.overlap(this.axes, this.skeleton, destroySkeleton.bind(this));
-    //var lizardCollider = this.physics.add.overlap(this.axes, this.lizard, destroyLizard.bind(this));
-    //var characterCollider = this.physics.add.overlap(viking, this.monster, destroyViking.bind(this));
+
 
     worldHeight = this.physics.world.bounds.height;
     worldWidth = this.physics.world.bounds.width;
@@ -250,11 +247,7 @@ function create() {
         reduceHealth();
     });
 
-    //this.physics.add.collider(this.monster, viking);
-    //this.physics.add.collider(this.skeleton, viking);
-    //this.physics.add.collider(this.skeleton, platforms);
-    //this.physics.add.collider(this.lizard, platforms);
-    //this.physics.add.collider(this.lizard, viking);
+
     this.controls = this.input.keyboard.createCursorKeys(); // Allows the access of user arrow key presses
     this.input.on('pointerdown', throwAxe, this);
     this.physics.world.on('worldbounds', destroyWeapon);
@@ -318,7 +311,8 @@ function create() {
     this.physics.add.collider(this.axes, movingPlatform4);
     this.physics.add.collider(this.otherAxes, movingPlatform4);
 
-    this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+    //this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+    this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
     // Viking Animations:
     this.anims.create({
@@ -482,11 +476,19 @@ function create() {
 
 
     this.viking.isBeingAttacked = false;
-
+    
+    this.initialTime = 120;
+    timeText = this.add.text(1400, 16, 'Countdown: ' + formatTime(this.initialTime));
+    timedEvent = this.time.addEvent({ delay: 1000, callback: onEvent, callbackScope: this, loop: true});
+    
 }
 
 
 function update() {
+
+   
+    
+
     controls = this.controls
     this.inputKeys = this.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -557,7 +559,6 @@ function update() {
             viking.setVelocityY(-260 - playerVelocityModifier);
         }
     })
-
 
 
 
@@ -649,6 +650,7 @@ function update() {
             }
         }
     });
+
 
 
 }
@@ -758,6 +760,9 @@ function destroyMonster(axe, enemy) {
 
 function delayMonsterDeath(monster) {
     monster.destroy();
+    this.enemies.monsterCount--;
+    //var timer = this.time.delayedCall(2000, monsterRespawn,[], this);
+
 }
 
 function monsterScore() {
@@ -879,6 +884,8 @@ function vikingRespawn() {
 }
 
 
+
+
 function gameOver() {
     this.scene.pause;
 }
@@ -889,6 +896,22 @@ function getRoomCode() {
     let roomCode = splitUrl[splitUrl.length - 1];
     return roomCode;
 }
+
+function formatTime(seconds){
+    var minutes = Math.floor(seconds/60);
+
+    var partInSeconds = seconds%60;
+
+    partInSeconds = partInSeconds.toString().padStart(2,'0');
+
+    return `${minutes}:${partInSeconds}`;
+}
+
+function onEvent(){
+    this.initialTime -= 1;
+    timeText.setText('Countdown: ' + formatTime(this.initialTime));
+}
+
 
 var game = new Phaser.Game(config);
 
