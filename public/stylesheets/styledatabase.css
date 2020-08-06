@@ -8,6 +8,34 @@ body{
   width: 300px;
   position:absolute;
   top: 40%;
-  left: 40%;
+  left: 45%;
   transform: translate(-50%,-50%);
+}
+#button{
+  width: 40%;
+  background: #B87333;
+  border: 2px solid black;
+  color: white;
+  padding: 2px;
+  font-size: 17px;
+  cursor:auto;
+  margin: 1px 0;
+  border-radius: 10%;
+}
+
+#roomCode{
+  border:2px solid black;
+  outline: none;
+  background: white;
+  color: black;
+  font-size: 18px;
+  width: 80%;
+
+  margin: 0 10px;
+  border-radius: 5%;
+}
+
+.instructions{
+  width: 200%;
+  font-size: 18px;
 }
