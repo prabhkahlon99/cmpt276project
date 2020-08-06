@@ -50,11 +50,13 @@ function preload() {
 
     this.load.spritesheet('skeleton', 'assets/skeleton.png', { frameWidth: 64, frameHeight: 64, endFrame: 272 });
     this.load.spritesheet('lizard', 'assets/lizard.png', { frameWidth: 64, frameHeight: 64, endFrame: 272 });
-
+    this.load.spritesheet('heart_healths', 'assets/heart_healths.png', { frameWidth: 108, frameHeight: 32, endFrame: 3 });
     this.load.image('ground', 'assets/platform.png');
     this.load.image('powerupWater', 'assets/temp_bottle.png');
     this.load.image('weapon', 'assets/axe.png');
+
     this.score = 0;
+
 }
 
 function create() {
@@ -162,6 +164,10 @@ function create() {
     //Adding lizard to game
     this.lizard = this.physics.add.sprite(450, 400, 'lizard', 11 * (mainCharacterRows) + 0);
 
+    //Adding health hearts to the game
+    this.viking.heart_healths = this.add.sprite(735, 24, 'heart_healths', 0);
+    this.viking.hearts = 3;
+
     //Adds the water bottle power up to the game.
     var waterBottle = this.physics.add.sprite(100, 450, 'powerupWater').setScale(0.2);
     waterBottle.body.setAllowGravity(false);
@@ -180,13 +186,14 @@ function create() {
     var monsterCollider = this.physics.add.overlap(this.axes, this.monster, destroyMonster.bind(this));
     var skeletonCollider = this.physics.add.overlap(this.axes, this.skeleton, destroySkeleton.bind(this));
     var lizardCollider = this.physics.add.overlap(this.axes, this.lizard, destroyLizard.bind(this));
-    //var characterCollider = this.physics.add.overlap(viking, this.monster, destroyViking.bind(this));
+    var monsterDamageCollider = this.physics.add.overlap(viking, this.monster, monsterDamage.bind(this));
+    var lizardDamageCollider = this.physics.add.overlap(viking, this.lizard, lizardDamage.bind(this));
     //console.log(this.physics.world.bounds);
     //console.log(this.physics.world.bounds.height);
     worldHeight = this.physics.world.bounds.height;
     worldWidth = this.physics.world.bounds.width;
     this.physics.add.collider(this.monster, platforms);
-    this.physics.add.collider(this.monster, viking);
+    //this.physics.add.collider(this.monster, viking);
     //this.physics.add.collider(this.skeleton, viking);
     this.physics.add.collider(this.skeleton, platforms);
     this.physics.add.collider(this.lizard, platforms);
@@ -271,14 +278,14 @@ function create() {
         key: 'monsterAttackLeft',
         frames: this.anims.generateFrameNumbers('monsterCharacter', { start: 169, end: 174 }),
         frameRate: 8,
-        repeat: -1
+        repeat: 2
     });
 
     this.anims.create({
         key: 'monsterAttackRight',
         frames: this.anims.generateFrameNumbers('monsterCharacter', { start: 195, end: 200 }),
         frameRate: 8,
-        repeat: -1
+        repeat: 2
     });
 
     // Skeleton Animations
@@ -364,6 +371,10 @@ function create() {
     this.monster.isDead = false;
     this.skeleton.isDead = false;
     this.lizard.isDead = false;
+
+    this.viking.isBeingAttacked = false;
+
+
 }
 
 
@@ -454,6 +465,7 @@ function update() {
         }
     });
     
+
 }
 
 //Destroys powerUp on pick up and adds attributes to player.
@@ -551,8 +563,12 @@ function monsterScore(){
         this.scoreText.setText('Score: ' + this.score);
     
 }
-/*
-function destroyViking() {
+
+function monsterDamage() {
+    if (this.viking.isBeingAttacked){
+        return;
+    }
+    this.viking.isBeingAttacked = true;
     this.monster.setVelocityX(0);
 
     if (this.monster.x > this.viking.x ){
@@ -561,8 +577,70 @@ function destroyViking() {
     else{
         this.monster.anims.play('monsterAttackRight', true);
     }
+
+    var timer = this.time.delayedCall(100, reduceHealth, [], this);
+    var timer = this.time.delayedCall(1500, monsterDamageHelper, [], this);
+
 }
-*/
+
+function monsterDamageHelper(){
+    this.viking.isBeingAttacked = false;
+    if(this.monster.isDead){
+        return;
+    }
+    if (this.monster.x > this.viking.x ){
+        this.monster.anims.play('monsterLeft', true);
+        this.monster.setVelocityX(-100);
+    }
+    else{
+        this.monster.anims.play('monsterRight', true);
+        this.monster.setVelocityX(100);
+    }
+    
+}
+
+function lizardDamage() {
+    if (this.viking.isBeingAttacked){
+        return;
+    }
+    this.viking.isBeingAttacked = true;
+    this.lizard.setVelocityX(0);
+
+    if (this.lizard.x > this.viking.x ){
+        this.lizard.anims.play('lizardAttackLeft', true);
+    }
+    else{
+        this.lizard.anims.play('lizardAttackRight', true);
+    }
+
+    var timer = this.time.delayedCall(100, reduceHealth, [], this);
+    var timer = this.time.delayedCall(1500, lizardDamageHelper, [], this);
+
+}
+
+function lizardDamageHelper(){
+    this.viking.isBeingAttacked = false;
+    if(this.lizard.isDead){
+        return;
+    }
+    if (this.lizard.x > this.viking.x ){
+        this.lizard.anims.play('lizardLeft', true);
+        this.lizard.setVelocityX(-100);
+    }
+    else{
+        this.lizard.anims.play('lizardRight', true);
+        this.lizard.setVelocityX(100);
+    }
+}
+
+function reduceHealth(){
+    this.viking.hearts--;
+    if (this.viking.hearts < 0){
+        this.viking.hearts = 0;
+    }
+    this.viking.heart_healths = this.add.sprite(735, 24, 'heart_healths', (3-this.viking.hearts));
+}
+
 
 function getRoomCode() {
     let url = window.location.href;
