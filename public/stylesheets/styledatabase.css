@@ -34,10 +34,14 @@ body{
 }
 
 .instructions{
-  width: 200%;
+  width: 185%;
   font-size: 18px;
 }
 
 .or{
   font-size: 30px;
+}
+
+#players{
+  text-align: left;
 }
