@@ -118,8 +118,9 @@ function create() {
 
     //Adding main character to game
     this.otherPlayers = this.physics.add.group({ allowGravity: false });
+    var viking = this.physics.add.sprite(100, 500, 'mainCharacter', 6 * (mainCharacterRows) + (7)); // Initially Places the Viking 
+    this.viking = viking;
     var self = this;
-    var viking = self.physics.add.sprite(100, 500, 'mainCharacter', 6 * (mainCharacterRows) + (7)); // Initially Places the Viking 
     //console.log(this.socket);
     this.socket.on('listOfPlayers', function (players) {
         //console.log("hello server?")
@@ -131,6 +132,7 @@ function create() {
                     console.log('others');
                     var otherPlayer = self.add.sprite(400, players[id].y + Math.floor(Math.random(10)), 'mainCharacter', 6 * (mainCharacterRows) + (7));
                     otherPlayer.id = players[id].playerId;
+                    
                     self.otherPlayers.add(otherPlayer);
                 }
             }
@@ -145,7 +147,16 @@ function create() {
         }
     });
 
-    this.viking = viking;
+    this.socket.on('playerLeave', function (player) {
+        if(player.roomId == self.roomCode) {
+            self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+                if(otherPlayer.id == player.playerId) {
+                    otherPlayer.setVisible(false);
+                    otherPlayer.setActive(false);
+                }
+            });
+        }
+    });
 
     this.socket.on('movePlayer', function (playerPosition) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
@@ -188,8 +199,9 @@ function create() {
         maxSize: 3,
     });
 
-    var viking =  this.viking;
-    console.log(viking)
+    console.log(this.axes);
+
+
     var platforms = this.physics.add.staticGroup(); // Implments Physics
     
 
@@ -208,6 +220,14 @@ function create() {
     worldHeight = this.physics.world.bounds.height;
     worldWidth = this.physics.world.bounds.width;
     this.physics.add.collider(this.enemies, platforms);
+    this.physics.add.collider(this.axes, platforms, function(axe, platform) {
+        console.log(axe.numCollisions);
+        axe.numCollisions += 1;
+        console.log("bounce");
+        if(axe.numCollisions > 2) {
+            destroyEarly(axe);
+        }
+    });
     //this.physics.add.collider(this.monster, viking);
     //this.physics.add.collider(this.skeleton, viking);
     //this.physics.add.collider(this.skeleton, platforms);
@@ -245,6 +265,7 @@ function create() {
     movingPlatform1.setVelocityX(100);
     this.physics.add.collider(this.viking, movingPlatform1);
     this.physics.add.collider(this.enemies, movingPlatform1);
+    this.physics.add.collider(this.axes, movingPlatform1);
     
 
     movingPlatform2 = this.physics.add.image(400, 450, 'grassPlatform')
@@ -253,6 +274,7 @@ function create() {
     movingPlatform2.setVelocityX(200);
     this.physics.add.collider(this.viking, movingPlatform2);
     this.physics.add.collider(this.enemies, movingPlatform2);
+    this.physics.add.collider(this.axes, movingPlatform2);
 
     movingPlatform3 = this.physics.add.image(1200, 450, 'grassPlatform')
     movingPlatform3.setImmovable(true);
@@ -260,6 +282,7 @@ function create() {
     movingPlatform3.setVelocityX(-200);
     this.physics.add.collider(this.viking, movingPlatform3);
     this.physics.add.collider(this.enemies, movingPlatform3);
+    this.physics.add.collider(this.axes, movingPlatform3);
 
     movingPlatform4 = this.physics.add.image(800, 200, 'grassPlatform')
     movingPlatform4.setImmovable(true);
@@ -267,6 +290,7 @@ function create() {
     movingPlatform4.setVelocityX(250);
     this.physics.add.collider(this.viking, movingPlatform4);
     this.physics.add.collider(this.enemies, movingPlatform4);
+    this.physics.add.collider(this.axes, movingPlatform4);
 
     this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
@@ -305,8 +329,6 @@ function create() {
         frames: [{ key: 'mainCharacter', frame: 4 }],
         frameRate: 20
     });
-
-    console.log("hello");
 
 
     // Monster Animations
@@ -439,7 +461,6 @@ function create() {
 
     //this.skeleton.isDead = false;
     //this.lizard.isDead = false;
-    console.log("after lizard is dead end of creaate")
 }
 
 
@@ -492,7 +513,6 @@ function update() {
         movingPlatform4.setVelocityX(250);
     }
 
-    console.log("after moving platform");
     viking = this.viking
     if (controls.left.isDown || this.inputKeys.left.isDown) {
         viking.setVelocityX(-250 - playerVelocityModifier);
@@ -632,6 +652,8 @@ function throwAxe(pointer) { // Allows the acces of the space key to create a fl
         axe.body.setAllowGravity(false);
         axe.setActive(true);
         axe.setVisible(true);
+        axe.numCollisions = 0;
+        axe.setBounce(1);
         this.physics.moveToObject(axe, pointer, 400);
         //console.log(viking.body.velocity);
         //axe.setVelocity(viking.body.velocity);
@@ -650,6 +672,24 @@ function destroyWeapon(body) {
     }
 }
 
+function destroyEarly(axe) {
+    var weapon = axe.body.gameObject;
+    //console.log("boom");
+    //console.log(weapon);
+    if (weapon) {
+        weapon.setActive(false);
+        weapon.setVisible(false);
+        //weapon.destroy();
+        //console.log("gone");
+    }
+}
+
+function checkAxeCollisions(axe, platform) {
+    if(axe.numCollisions > 2) {
+        destroyWeapon(axe);
+    }
+}
+
 function destroyMonster() {
     var self = this;
     this.enemies.getChildren().forEach(function (enemy) {
@@ -662,22 +702,27 @@ function destroyMonster() {
                 enemy.anims.play('monsterDeath', true);
                 enemy.setVelocity(0);
                 let timer = self.time.delayedCall(800, monsterScore, [], self);
-                enemy.destroy();
+                let deathTimer = self.time.delayedCall(800, delayMonsterDeath, [enemy], self);
             }
             if (enemy.type == 'skeleton') {
                 enemy.anims.play('skeletonDeath', true);
                 enemy.setVelocity(0);
                 let timer = self.time.delayedCall(800, monsterScore, [], self);
-                enemy.destroy();
+                let deathTimer = self.time.delayedCall(800, delayMonsterDeath, [enemy], self);
             }
             if (enemy.type == 'lizard') {
                 enemy.anims.play('lizardDeath', true);
                 enemy.setVelocity(0);
                 let timer = self.time.delayedCall(800, monsterScore, [], self);
-                enemy.destroy();
+                let deathTimer = self.time.delayedCall(800, delayMonsterDeath, [enemy], self);
             }
         }
     });
+}
+
+function delayMonsterDeath(monster) {
+    console.log("delay");
+    monster.destroy();
 }
 
 function monsterScore() {
@@ -698,6 +743,10 @@ function destroyViking() {
 }
 */
 
+function gameOver() {
+    this.scene.pause;
+}
+
 function getRoomCode() {
     let url = window.location.href;
     let splitUrl = url.split("?")
@@ -705,18 +754,6 @@ function getRoomCode() {
     //console.log(roomCode);
     return roomCode;
 }
-/*
-function destroyViking() {
-    this.monster.setVelocityX(0);
-
-    if (this.monster.x > this.viking.x ){
-        this.monster.anims.play('monsterAttackLeft', true);
-    }
-    else{
-        this.monster.anims.play('monsterAttackRight', true);
-    }
-}
-*/
 var game = new Phaser.Game(config);
 
 

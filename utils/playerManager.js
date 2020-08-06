@@ -3,12 +3,13 @@ var monsters = [[]];
 var monsterCounter = 0;
 var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
 
-function addPlayer(id, room) {
+function addPlayer(id, room, name) {
     players[id] = {
         x: 100,
         y: 100,
         playerId: id,
-        roomId: room
+        roomId: room,
+        name: name
     };
 }
 
