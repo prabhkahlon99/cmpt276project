@@ -57,11 +57,7 @@ app.get("/login", checkNotAuthenticated, (req, res) => {
 });
 
 app.get("/search",(req, res) => {
-  if(token == null){
-    res.render("pages/adminlogin");
-  }else{
     res.render("pages/search");
-  }
 
 });
 
