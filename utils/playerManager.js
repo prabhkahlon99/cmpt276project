@@ -2,11 +2,19 @@ var players = {};
 var monsters = [[]];
 var monsterCounter = 0;
 var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
+var spawnX = [200,1400,500,1100];
+var spawnY = [535,535,280,280];
+var spawnNum = 0;
 
 function addPlayer(id, room, name) {
+    if(spawnNum > 3) {
+        spawnNum = 0;
+    }
+    tempNum = spawnNum;
+    spawnNum++
     players[id] = {
-        x: 100,
-        y: 100,
+        x: spawnX[tempNum],
+        y: spawnY[tempNum],
         playerId: id,
         roomId: room,
         name: name

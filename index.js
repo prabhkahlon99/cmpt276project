@@ -502,6 +502,7 @@ io.on('connection', function (socket) {
     playerManager.addPlayer(socket.id, roomId, user.name);
     socket.join(user.room);
     //console.log(`a ${user.name} joined game ${user.room}`);
+    socket.emit('spawnPos', playerManager.getPlayer(socket.id));
     socket.emit('listOfPlayers', playerManager.getPlayerList());
     //console.log('player = ', playerManager.getPlayerList());
     socket.to(user.room).emit('playerJoin', playerManager.getPlayer(socket.id));
@@ -531,7 +532,6 @@ io.on('connection', function (socket) {
     socket.to(playerPosition.roomId).emit('movePlayer', playerManager.getPlayer(socket.id));
   });
   socket.on('throwAxe', function(axeInfo) {
-    console.log(axeInfo.position);
     position = axeInfo.position;
     id = axeInfo.id;
     socket.to(roomManager.getUser(socket.id).room).emit('axeThrow', {position, id});
