@@ -1,6 +1,5 @@
 const express = require('express')
 const path = require('path')
-const bcrypt = require('bcrypt');
 const session = require('express-session');
 const flash = require('express-flash');
 const passport = require('passport');

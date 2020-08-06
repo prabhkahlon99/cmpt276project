@@ -188,9 +188,10 @@ function create() {
         maxSize: 3,
     });
 
-
+    var viking =  this.viking;
+    console.log(viking)
     var platforms = this.physics.add.staticGroup(); // Implments Physics
-
+    
 
     this.physics.add.collider(viking, platforms); // add collision for the ground/platforms
     viking.body.collideWorldBounds = true; // add collision for the side of the game (can't walk through it)
@@ -242,29 +243,30 @@ function create() {
     movingPlatform1.setImmovable(true);
     movingPlatform1.body.allowGravity = false;
     movingPlatform1.setVelocityX(100);
-    this.physics.add.collider(viking, movingPlatform1)
+    this.physics.add.collider(this.viking, movingPlatform1);
+    this.physics.add.collider(this.enemies, movingPlatform1);
     
 
     movingPlatform2 = this.physics.add.image(400, 450, 'grassPlatform')
     movingPlatform2.setImmovable(true);
     movingPlatform2.body.allowGravity = false;
     movingPlatform2.setVelocityX(200);
-    this.physics.add.collider(viking, movingPlatform2)
-
+    this.physics.add.collider(this.viking, movingPlatform2);
+    this.physics.add.collider(this.enemies, movingPlatform2);
 
     movingPlatform3 = this.physics.add.image(1200, 450, 'grassPlatform')
     movingPlatform3.setImmovable(true);
     movingPlatform3.body.allowGravity = false;
     movingPlatform3.setVelocityX(-200);
-    this.physics.add.collider(viking, movingPlatform3)
-
+    this.physics.add.collider(this.viking, movingPlatform3);
+    this.physics.add.collider(this.enemies, movingPlatform3);
 
     movingPlatform4 = this.physics.add.image(800, 200, 'grassPlatform')
     movingPlatform4.setImmovable(true);
     movingPlatform4.body.allowGravity = false;
     movingPlatform4.setVelocityX(250);
-    this.physics.add.collider(viking, movingPlatform4)
-
+    this.physics.add.collider(this.viking, movingPlatform4);
+    this.physics.add.collider(this.enemies, movingPlatform4);
 
     this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
@@ -297,13 +299,14 @@ function create() {
         repeat: 0
     });
 
+
     this.anims.create({
         key: 'turn',
         frames: [{ key: 'mainCharacter', frame: 4 }],
         frameRate: 20
     });
 
-
+    console.log("hello");
 
 
     // Monster Animations
@@ -436,6 +439,7 @@ function create() {
 
     //this.skeleton.isDead = false;
     //this.lizard.isDead = false;
+    console.log("after lizard is dead end of creaate")
 }
 
 
@@ -488,6 +492,7 @@ function update() {
         movingPlatform4.setVelocityX(250);
     }
 
+    console.log("after moving platform");
     viking = this.viking
     if (controls.left.isDown || this.inputKeys.left.isDown) {
         viking.setVelocityX(-250 - playerVelocityModifier);
@@ -534,7 +539,10 @@ function update() {
         x: this.viking.x,
         y: this.viking.y
     }
-    this.physics.add.collider(this.monster, movingPlatform1)
+    this.physics.add.collider(this.enemies, movingPlatform1)
+    this.physics.add.collider(this.enemies, movingPlatform2)
+    this.physics.add.collider(this.enemies, movingPlatform3)
+    this.physics.add.collider(this.enemies, movingPlatform4)
 
     //Monster animation moves back and forth as monster reaches map boundary
 
