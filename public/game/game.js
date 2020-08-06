@@ -85,26 +85,28 @@ function create() {
 
 
     else if (temperature >= 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(800, 400, 'blueMinimalClouds').setScale(4.2) // DONE
+        this.add.image(800, 400, 'blueMinimalClouds').setScale(4.2); // DONE
     }
 
     else if (temperature < 15 && clouds < 20 && status == "Clear") {
-        this.add.image(800, 400, 'clearGrey').setScale(4.5) // DONE
+        this.add.image(800, 400, 'clearGrey').setScale(4.5); // DONE
     }
 
     else if (temperature < 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(800, 400, 'orangeCloudy').setScale(6) // DONE
+        this.add.image(800, 400, 'orangeCloudy').setScale(6); // DONE
     }
 
     else if (status == "Drizzle" || status == "Rain") {
-        this.add.image(800, 400, 'orangeRainy').setScale(6) // Done
+        this.add.image(800, 400, 'orangeRainy').setScale(6); // Done
     }
 
     else {
-        this.add.image(800, 400, 'elsePink').setScale(0.25)
+        this.add.image(800, 400, 'elsePink').setScale(0.25);
     }
     // if (temperature >= 15 && )
-
+    this.gameOverText = this.add.text(800, 400, 'GAME OVER', {fontSize: '64px', fill: '#000'});
+    this.gameOverText.setOrigin(0.5);
+    this.gameOverText.visible = false;
     //this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
     var mainCharacterRows = 13;
 
@@ -511,7 +513,8 @@ function create() {
 
 
     this.viking.isBeingAttacked = false;
-
+    timerTest = this.time.delayedCall(3000, gameOver, [], this); //COMMENT THIS OUT IF NOT TESTING
+    
 }
 
 
@@ -916,6 +919,7 @@ function vikingRespawn() {
 
 function gameOver() {
     var self = game.scene.scenes[0];
+    self.gameOverText.setVisible(true);
     console.log(self);
     self.scene.pause();
 }

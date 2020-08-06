@@ -516,7 +516,7 @@ io.on('connection', function (socket) {
       console.log('over');
       console.log(room);
       io.in(room).emit('game-over');
-    }, 130000);
+    }, 130000); 
   });
   socket.on('disconnect', function () {
     //console.log(socket.request.user);
