@@ -9,7 +9,7 @@ var cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 initialize();
-
+token = null;
 
 const PORT = process.env.PORT || 5000
 
@@ -57,7 +57,12 @@ app.get("/login", checkNotAuthenticated, (req, res) => {
 });
 
 app.get("/search",(req, res) => {
-  res.render("pages/search");
+  if(token == null){
+    res.render("pages/adminlogin");
+  }else{
+    res.render("pages/search");
+  }
+
 });
 
 app.get("/delete",(req, res) => {
@@ -106,27 +111,32 @@ app.get('/database', checkNAuthenticated, (req, res) => {
 
 //Searchs and prints user with that id.
 app.get('/searchUser',(req, res) => {
-  var id = req.query.id;
+  if(token == null){
+    res.render("pages/adminlogin");
+  }else{
+    var id = req.query.id;
 
-  let errors = [];
+    let errors = [];
 
-  pool.query(
-    `SELECT * FROM loginusers WHERE id = $1`,
-    [id],
-    (error, result) => {
-    if (error) {
-      throw error;
-    }
+    pool.query(
+      `SELECT * FROM loginusers WHERE id = $1`,
+      [id],
+      (error, result) => {
+      if (error) {
+        throw error;
+      }
 
-    if( result.rows.length == 0) {
-        errors.push({ message: "User doesnot exist!!" });
-        res.render("pages/search", {errors});
-    }else {
-      var results = {'rows':result.rows}
-      res.render('pages/db', results);
-    }
+      if( result.rows.length == 0) {
+          errors.push({ message: "User doesnot exist!!" });
+          res.render("pages/search", {errors});
+      }else {
+        var results = {'rows':result.rows}
+        res.render('pages/db', results);
+      }
 
-});
+  });
+  }
+
 });
 
 
@@ -443,7 +453,8 @@ app.post("/adminlogin", checkNAuthenticated, (req,res) => {
       const usertype1 = 'admin';
       if(pass == user1.password){
         if(usertype1 == user1.type){
-          const token = jwt.sign({ user1 }, 'secretkey');
+          token = jwt.sign({ user1 }, 'secretkey');
+
           res.render("pages/admin");
         }else{
           req.flash("success_msg", "Access not allowed!!!!");
