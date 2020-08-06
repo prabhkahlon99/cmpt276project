@@ -175,6 +175,70 @@ app.post('/deleteUser',(req, res) => {
   }
 });
 
+app.post("/reset", checkNotAuthenticated, (req, res) => {
+  let email = req.body.email;
+  let current_Password = req.body.current_Password;
+  let new_password = req.body.new_password;
+  let new_passwordre = req.body.new_passwordre;
+
+  console.log(email, current_Password, new_password, new_passwordre);
+
+  let errors = [];
+
+  if (new_password !== new_passwordre) {
+    errors.push({ message: "Passwords does not match!!!!" });
+  }
+
+  if (new_password.length < 5) {
+    errors.push({ message: "Password too short, must be greater (>5)" });
+  }
+
+  if (!current_Password || !email || !new_password || !new_passwordre) {
+    errors.push({ message: "Please correctly enter all the fields" });
+  }
+
+  if(errors.length > 0) {
+    res.render("pages/reset", {errors});
+  }else {
+
+  pool.query(
+    `SELECT * FROM loginusers WHERE email = '${email}'`,
+    (error, results) => {
+    if (error) {
+      throw error;
+    }
+    else{
+      if(results.rows.length > 0){
+        const usr =  results.rows[0];
+        if(current_Password == usr.password){
+          pool.query(
+           `update loginusers set password = '${new_password}' where email = '${email}'`,
+            (error,results) => { if (error) {
+              throw error;
+            }else{
+              req.flash("success_msg", "password updated successfully, Please login again!!");
+              if('public' == usr.type){
+                res.render("pages/login");
+              }
+              else{
+                res.render("pages/adminlogin");
+              }
+            }
+          });
+        }
+        else {
+          req.flash("success_msg", "incorrect current password!!");
+          res.render("pages/reset");
+        }
+      }else{
+      req.flash("success_msg", "Email not registered!!");
+      res.render("pages/reset");
+      }
+    }
+
+  });
+}
+});
 
 
 
@@ -377,14 +441,17 @@ app.post("/adminlogin", checkNAuthenticated, (req,res) => {
     if(results.rows.length > 0){
       const user1 = results.rows[0];
       const usertype1 = 'admin';
-      if(pass == user1.password && usertype1 == user1.type){
-        const token = jwt.sign({ user1 }, 'secretkey');
-        res.render("pages/admin");
-        }
-        else{
+      if(pass == user1.password){
+        if(usertype1 == user1.type){
+          const token = jwt.sign({ user1 }, 'secretkey');
+          res.render("pages/admin");
+        }else{
           req.flash("success_msg", "Access not allowed!!!!");
           res.render("pages/adminlogin");
-
+        }
+      }else{
+        req.flash("success_msg", "email or password is incorrect");
+        res.render("pages/adminlogin");
         }
       }
   });
@@ -437,43 +504,42 @@ function verifyToken(req, res, next){
 
 
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
-var io = require('socket.io').listen(server);
-var passportIo = require('passport.socketio');
-
-//Socket.io
-io.use(passportIo.authorize({
-  secret: 'secret',
-  store: sessionStore,
-  success: onAuthorizationSuccess,
-  fail: onAuthorizationFail
-}));
-
-function onAuthorizationSuccess(data, accept) {
-  //console.log(data);
-  //console.log(accept);
-  console.log("Connection accepted");
-  accept();
-}
-
-function onAuthorizationFail(data, message, error, accept) {
-  //console.log(data);
-  //console.log(accept);
-  console.log("Connection rejected");
-  if(error) {
-    accept(new Error(message));
-  }
-}
-
-
-io.on('connection', function (socket) {
-  console.log("a user connected");
-
-  console.log(socket.request.user);
-  io.sockets.emit('names', socket.request.user.name);
-  socket.on('disconnect', function () {
-    console.log("a user disconnected");
-  });
-});
-
+// var io = require('socket.io').listen(server);
+// var passportIo = require('passport.socketio');
+//
+// //Socket.io
+// io.use(passportIo.authorize({
+//   secret: 'secret',
+//   store: sessionStore,
+//   success: onAuthorizationSuccess,
+//   fail: onAuthorizationFail
+// }));
+//
+// function onAuthorizationSuccess(data, accept) {
+//   //console.log(data);
+//   //console.log(accept);
+//   console.log("Connection accepted");
+//   accept();
+// }
+//
+// function onAuthorizationFail(data, message, error, accept) {
+//   //console.log(data);
+//   //console.log(accept);
+//   console.log("Connection rejected");
+//   if(error) {
+//     accept(new Error(message));
+//   }
+// }
+//
+//
+// io.on('connection', function (socket) {
+//   console.log("a user connected");
+//
+//   console.log(socket.request.user);
+//   io.sockets.emit('names', socket.request.user.name);
+//   socket.on('disconnect', function () {
+//     console.log("a user disconnected");
+//   });
+// });
 
 module.exports = app;
