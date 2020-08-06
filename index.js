@@ -498,7 +498,7 @@ io.on('connection', function (socket) {
   //put the user into the correct game instance depending on their roomid
   socket.on('joinGame', function (roomId) {
     var user = roomManager.userJoin(socket.id, socket.request.user.name, roomId);
-    playerManager.addPlayer(socket.id, roomId);
+    playerManager.addPlayer(socket.id, roomId, user.name);
     socket.join(user.room);
     //console.log(`a ${user.name} joined game ${user.room}`);
     socket.emit('listOfPlayers', playerManager.getPlayerList());
@@ -514,11 +514,12 @@ io.on('connection', function (socket) {
     //console.log(socket.request.user);
     //console.log(socket.id);
     var user = roomManager.userLeave(socket.id);
-    playerManager.removePlayer(socket.id);
     //console.log(user);
     if (user) {
       console.log(`a ${user.name} disconnected`);
       io.to(user.room).emit('lobbyLeave', user);
+      socket.to(user.room).emit('playerLeave', playerManager.getPlayer(socket.id));
+      playerManager.removePlayer(socket.id);
       //console.log(io.sockets.adapter.rooms[user.room]);
     }
   });
