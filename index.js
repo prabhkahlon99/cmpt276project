@@ -1,6 +1,5 @@
 const express = require('express')
 const path = require('path')
-const bcrypt = require('bcrypt');
 const session = require('express-session');
 const flash = require('express-flash');
 const passport = require('passport');
@@ -166,7 +165,7 @@ app.post('/deleteUser', (req, res) => {
           throw error;
         }
         if (results.rows.length == 0) {
-          errors.push({ message: "User doesnot exist!!" });
+          errors.push({ message: "User does not exist!!" });
           res.render("pages/delete", { errors });
         } else {
           pool.query(
@@ -440,12 +439,16 @@ function checkDAuthenticated(req, res, next) {
 }
 
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+
+//Require socket.io for multiplayer
 var io = require('socket.io').listen(server);
+//Require passport.socketio to auth user
 var passportIo = require('passport.socketio');
+//Manages players in a game instance
 const playerManager = require('./utils/playerManager.js');
 const { isRoom } = require('./utils/ioManager.js');
 
-//Socket.io
+//Get socket.io to use passport authentication
 io.use(passportIo.authorize({
   secret: 'secret',
   store: sessionStore,
@@ -453,6 +456,7 @@ io.use(passportIo.authorize({
   fail: onAuthorizationFail
 }));
 
+//If authorization succeeds allow the connection
 function onAuthorizationSuccess(data, accept) {
   //console.log(data);
   //console.log(accept);
@@ -460,6 +464,7 @@ function onAuthorizationSuccess(data, accept) {
   accept();
 }
 
+//If auth fails reject connection
 function onAuthorizationFail(data, message, error, accept) {
   //console.log(data);
   //console.log(accept);
@@ -469,7 +474,7 @@ function onAuthorizationFail(data, message, error, accept) {
   }
 }
 
-
+//When a user connects check which room they want to join and create a user and room if needed
 io.on('connection', function (socket) {
   console.log("a user connected");
   socket.on('joinRoom', function (roomId) {
@@ -490,6 +495,7 @@ io.on('connection', function (socket) {
       io.to(socket.id).emit('getPlayers', usersInRoom);
     }
   });
+  //put the user into the correct game instance depending on their roomid
   socket.on('joinGame', function (roomId) {
     var user = roomManager.userJoin(socket.id, socket.request.user.name, roomId);
     playerManager.addPlayer(socket.id, roomId);
@@ -499,6 +505,7 @@ io.on('connection', function (socket) {
     //console.log('player = ', playerManager.getPlayerList());
     socket.to(user.room).emit('playerJoin', playerManager.getPlayer(socket.id));
   });
+  //send all players from the room to the game
   socket.on('playGame', function(readyPlayers) {
     //TODO check if everyone is ready then go
     io.in(roomManager.getUser(socket.id).room).emit('game-start');
@@ -515,6 +522,7 @@ io.on('connection', function (socket) {
       //console.log(io.sockets.adapter.rooms[user.room]);
     }
   });
+  //Send player movement data to certain game instance/room
   socket.on('playerMoved', function(playerPosition) {
     playerManager.setPlayerX(socket.id, playerPosition.x);
     playerManager.setPlayerY(socket.id, playerPosition.y);
