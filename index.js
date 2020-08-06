@@ -536,6 +536,12 @@ io.on('connection', function (socket) {
     id = axeInfo.id;
     socket.to(roomManager.getUser(socket.id).room).emit('axeThrow', {position, id});
   });
+  socket.on('killed', function() {
+    socket.to(roomManager.getUser(socket.id).room).emit('playerKilled', socket.id);
+  });
+  socket.on('respawn', function() {
+    socket.to(roomManager.getUser(socket.id).room).emit('playerRespawn', socket.id);
+  });
 });
 
 module.exports = app;
