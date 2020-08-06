@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 const flash = require('express-flash');
 const passport = require('passport');
-const passprt = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 var cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -31,8 +30,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({secret:'secret',resave: false, saveUninitialized:false}));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(passprt.initialize());
-app.use(passprt.session());
 app.use(flash());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -132,6 +129,16 @@ app.get('/searchUser',(req, res) => {
 });
 });
 
+
+app.get('/home', (req, res) => {
+  if (req.isAuthenticated()) {
+    var username = req.user.name;
+    res.sendFile(path.join(__dirname, '/public', 'menu.html'));
+  }
+  else {
+    res.send("not authenticated");
+  }
+});
 
 //
 app.post('/deleteUser',(req, res) => {
@@ -428,6 +435,45 @@ function verifyToken(req, res, next){
 }
 
 
-app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
+
+const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+var io = require('socket.io').listen(server);
+var passportIo = require('passport.socketio');
+
+//Socket.io
+io.use(passportIo.authorize({
+  secret: 'secret',
+  store: sessionStore,
+  success: onAuthorizationSuccess,
+  fail: onAuthorizationFail
+}));
+
+function onAuthorizationSuccess(data, accept) {
+  //console.log(data);
+  //console.log(accept);
+  console.log("Connection accepted");
+  accept();
+}
+
+function onAuthorizationFail(data, message, error, accept) {
+  //console.log(data);
+  //console.log(accept);
+  console.log("Connection rejected");
+  if(error) {
+    accept(new Error(message));
+  }
+}
+
+
+io.on('connection', function (socket) {
+  console.log("a user connected");
+
+  console.log(socket.request.user);
+  io.sockets.emit('names', socket.request.user.name);
+  socket.on('disconnect', function () {
+    console.log("a user disconnected");
+  });
+});
+
 
 module.exports = app;
