@@ -3,8 +3,8 @@
 var config = {
     type: Phaser.AUTO,
     scale: {
-        width: 800,
-        height: 600,
+        width: 1600,
+        height: 800,
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },  
@@ -13,7 +13,7 @@ var config = {
         default: "arcade",
         arcade: {
             gravity: {y: 250},
-            debug: true // set to true to see sprite hitbox etc
+            debug: false // set to true to see sprite hitbox etc
         }
     },
     scene: {
@@ -26,7 +26,10 @@ var config = {
 var temperature
 
 var controls;
+var movingPlatform1
+var keys;
 var keySpace;
+var keyShift;
 var playerVelocityModifier = 0;
 var worldHeight;
 var worldWidth;
@@ -34,14 +37,18 @@ function preload() {
     // adding array of character with 178 unique positions
     this.load.spritesheet('mainCharacter', 'assets/mainCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
     this.load.image('ground', 'assets/platform.png')
-    this.load.image('clearBlue', 'assets/clearblue.png')
+    this.load.image('clearBlue', 'assets/yellowClouds.png')
     this.load.image('cloudyBlue', 'assets/cloudyblue.png')
-    this.load.image('clearGrey', 'assets/cleargrey.png')
+    this.load.image('clearGrey', 'assets/forestCloudy.png')
     this.load.image('cloudyGrey', 'assets/cloudygrey.png')
-    this.load.image('rainyGrey', 'assets/rainygrey.png')
-    this.load.image('elsePink', 'assets/elsePink.png')
-
+    this.load.image('rainyGrey', 'assets/orangeRain.png')
+    this.load.image('elsePink', 'assets/desertClouds.jpg')
+    this.load.image('blueMinimalClouds', 'assets/blueMinimalClouds.png')
+    this.load.image('orangeCloudy', 'assets/orangeCloudy.png')
+    this.load.image('grassPlatform', 'assets/test.png')
+    this.load.image('purpleCloud', 'assets/purpleCloud.png')
     this.load.spritesheet('monsterCharacter', 'assets/monsterCharacter.png',{ frameWidth: 64, frameHeight: 64, endFrame: 272 });
+
     this.load.image('ground', 'assets/platform.png');
     this.load.image('powerupWater', 'assets/temp_bottle.png');
     this.load.image('weapon', 'assets/axe.png');
@@ -49,7 +56,7 @@ function preload() {
 }
 
 function create() {
-
+    
     $.ajax({
         async: false,
         url: 'https://api.openweathermap.org/data/2.5/weather?lat=49.246292&lon=-123.116226&appid=474febb3cf2438ebe6ae75f0de13355c&units=metric',
@@ -62,35 +69,38 @@ function create() {
     })
 
 
-
+    //
+    keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
     console.log(temperature)
     console.log(clouds)
     console.log(status)
     
     if (temperature >= 15 && clouds < 20 && status == "Clear") {
-        this.add.image(400,300,'clearBlue')
+        this.add.image(800,400,'clearBlue').setScale(0.25) // DONE
+
     }
 
 
     else if (temperature >= 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(400,300, 'cloudyBlue')
+        this.add.image(800,400, 'blueMinimalClouds').setScale(4.2) // DONE
     }
 
     else if (temperature < 15 && clouds < 20 && status == "Clear") {
-        this.add.image(400,300,'clearGrey')
+        this.add.image(800,400,'clearGrey').setScale(4.5) // DONE
     }
 
     else if (temperature < 15 && clouds >= 20 && status == "Clouds") {
-        this.add.image(400,300,'cloudyGrey')
+        this.add.image(800,400,'orangeCloudy').setScale(6) // DONE
     }
 
     else if (status == "Drizzle" || status == "Rain") {
-        this.add.image(400,300,'rainyGrey')
+        this.add.image(800,400,'orangeRainy').setScale(6) // Done
     }
 
     else {
-        this.add.image(400,300,'elsePink')
+        this.add.image(800,400,'elsePink').setScale(0.25)
     }
     // if (temperature >= 15 && )
 
@@ -115,10 +125,16 @@ function create() {
 
 
     var platforms = this.physics.add.staticGroup(); // Implments Physics
-    this.physics.add.collider(viking, platforms);
+
+
+    this.physics.add.collider(viking, platforms); // add collision for the ground/platforms
+    viking.body.collideWorldBounds = true; // add collision for the side of the game (can't walk through it)
+
+
     //Allows player to pick up water bottle power up
     var bottleCollider = this.physics.add.overlap(viking, waterBottle, powerUpWater.bind(this));
     var monsterCollider = this.physics.add.overlap(this.axes, this.monster, destroyMonster.bind(this));
+    //var characterCollider = this.physics.add.overlap(viking, this.monster, destroyViking.bind(this));
     console.log(this.physics.world.bounds);
     console.log(this.physics.world.bounds.height);
     worldHeight = this.physics.world.bounds.height;
@@ -136,14 +152,47 @@ function create() {
     //The SMALLER the Y, the HIGHER UP. So a negative number is beyond the top of the screen.
 
     //Platform Ground
-    platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+    platforms.create(800, 750, 'purpleCloud').setScale(2.75).refreshBody();
     
     //Platform Air
-    platforms.create(600,450, 'ground');
-    platforms.create(30, 400, 'ground');
-    platforms.create(-150, 350, 'ground');
-    platforms.create(200, 300, 'ground').setScale(0.40).refreshBody();
-    platforms.create(350,515, 'ground').setScale(0.65).refreshBody();
+    // platforms.create(600,450, 'grassPlatform');
+    // platforms.create(30, 400, 'purpleCloud');
+    // platforms.create(-150, 350, 'ground');
+    // platforms.create(200, 300, 'grassPlatform')
+    // platforms.create(350,515, 'grassPlatform')
+
+    platforms.create(200, 575, 'purpleCloud').setScale(0.65).refreshBody();
+    platforms.create(800, 575, 'purpleCloud').setScale(0.65).refreshBody();
+    platforms.create(1400, 575, 'purpleCloud').setScale(0.65).refreshBody();
+    platforms.create(800, 330, 'purpleCloud').setScale(1.65).refreshBody();
+
+    //moving platform
+    movingPlatform1 = this.physics.add.image(300,660, 'grassPlatform');
+    movingPlatform1.setImmovable(true);
+    movingPlatform1.body.allowGravity = false;
+    movingPlatform1.setVelocityX(100);
+    this.physics.add.collider(viking, movingPlatform1)
+    
+
+    movingPlatform2 = this.physics.add.image(400, 450, 'grassPlatform')
+    movingPlatform2.setImmovable(true);
+    movingPlatform2.body.allowGravity = false;
+    movingPlatform2.setVelocityX(200);
+    this.physics.add.collider(viking, movingPlatform2)
+
+
+    movingPlatform3 = this.physics.add.image(1200, 450, 'grassPlatform')
+    movingPlatform3.setImmovable(true);
+    movingPlatform3.body.allowGravity = false;
+    movingPlatform3.setVelocityX(-200);
+    this.physics.add.collider(viking, movingPlatform3)
+
+
+    movingPlatform4 = this.physics.add.image(800, 200, 'grassPlatform')
+    movingPlatform4.setImmovable(true);
+    movingPlatform4.body.allowGravity = false;
+    movingPlatform4.setVelocityX(250);
+    this.physics.add.collider(viking, movingPlatform4)
 
 
     // first number is row index, second is column index, refer to mainCharacter.png to view sprite index
@@ -163,10 +212,19 @@ function create() {
     });
 
     this.anims.create({
+        key: 'death',
+        frames: this.anims.generateFrameNumbers('mainCharacter', {start: 260, end: 265}),
+        frameRate: 12,
+        repeat: 0
+    });
+
+    this.anims.create({
         key: 'turn',
         frames: [ { key: 'mainCharacter', frame: 4 } ],
         frameRate: 20
     });
+
+
 
 
     // Monster Animations
@@ -184,6 +242,29 @@ function create() {
         repeat: -1
     });
 
+     this.anims.create({
+        key: 'monsterDeath',
+        frames: this.anims.generateFrameNumbers('monsterCharacter', {start: 260, end: 265}),
+        frameRate: 8,
+        repeat: 0
+    });
+
+     this.anims.create({
+        key: 'monsterAttackLeft',
+        frames: this.anims.generateFrameNumbers('monsterCharacter', {start: 169, end: 174}),
+        frameRate: 8,
+        repeat: -1
+    });
+
+     this.anims.create({
+        key: 'monsterAttackRight',
+        frames: this.anims.generateFrameNumbers('monsterCharacter', {start: 195, end: 200}),
+        frameRate: 8,
+        repeat: -1
+    });
+
+
+
     this.monster.setVelocityX(100);
     
     this.monster.anims.play('monsterRight', true);
@@ -191,30 +272,88 @@ function create() {
     this.viking = viking;
 }
 
+
 function update() {
     controls = this.controls
+    this.inputKeys = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        upSpace: Phaser.Input.Keyboard.KeyCodes.SPACEBAR,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+
+    })
+
+    if (movingPlatform1.x >= 1300)
+    {
+        movingPlatform1.setVelocityX(-100);
+    }
+    else if (movingPlatform1.x <= 300)
+    {
+        movingPlatform1.setVelocityX(100);
+    }
+
+    
+    if (movingPlatform2.x >= 600)
+    {
+        movingPlatform2.setVelocityX(-200);
+    }
+    else if (movingPlatform2.x <= 200)
+    {
+        movingPlatform2.setVelocityX(200);
+    }
+
+    
+    if (movingPlatform3.x <= 1000)
+    {
+        movingPlatform3.setVelocityX(200);
+    }
+    else if (movingPlatform3.x >= 1400)
+    {
+        movingPlatform3.setVelocityX(-200);
+    }
+
+    if (movingPlatform4.x >= 1300)
+    {
+        movingPlatform4.setVelocityX(-250);
+    }
+    else if (movingPlatform4.x <= 300)
+    {
+        movingPlatform4.setVelocityX(250);
+    }
+
     viking = this.viking
-    if (controls.left.isDown) {
-        viking.setVelocityX(-100 - playerVelocityModifier);
+    if (controls.left.isDown || this.inputKeys.left.isDown) {
+        viking.setVelocityX(-250 - playerVelocityModifier);
         this.viking.anims.play('left', true);
     }
+
     
-    else if (controls.right.isDown) {
-        viking.setVelocityX(100 + playerVelocityModifier);
+    else if (controls.right.isDown || this.inputKeys.right.isDown) {
+        viking.setVelocityX(250 + playerVelocityModifier);
         this.viking.anims.play('right', true);
     } 
 
-    else if (controls.down.isDown) {
-        viking.setVelocityY(200 + playerVelocityModifier)
+    else if (controls.down.isDown || this.inputKeys.down.isDown) {
+        viking.setVelocityY(250 + playerVelocityModifier)
     }
     
     else {
         viking.setVelocityX(0);
     }
 
-    if (controls.up.isDown && viking.body.touching.down) {
-        viking.setVelocityY(-200 - playerVelocityModifier); //Change this value and all other movement values later. Have some more realistic and controllable X axis movements. THEN also change platform heights.
+    if ((controls.up.isDown || this.inputKeys.up.isDown) && viking.body.touching.down) {
+        viking.setVelocityY(-260 - playerVelocityModifier); //Change this value and all other movement values later. Have some more realistic and controllable X axis movements. THEN also change platform heights.
     }
+
+
+    keySpace.on('down', function(key, event) {
+        if (viking.body.touching.down) {
+            viking.setVelocityY(-260 - playerVelocityModifier);
+        }
+    })
+
+
 
     //Monster animation moves back and forth as monster reaches map boundary
 
@@ -226,6 +365,7 @@ function update() {
         this.monster.setVelocityX(100);
         this.monster.anims.play('monsterRight', true);
     }
+    this.physics.add.collider(this.monster, movingPlatform1)
 
     //Despawn weapon if it's off the screen.
     this.axes.children.each(function(axe) {
@@ -279,9 +419,28 @@ function destroyWeapon(body) {
 }
 
 function destroyMonster() {
-    this.monster.destroy();
+    this.monster.anims.play('monsterDeath', true);
+    this.monster.setVelocity(0);
+    var timer = this.time.delayedCall(800, despawnMonster, [], this);
+    //this.monster.destroy();
 }
 
+//helper function
+function despawnMonster() {
+    this.monster.destroy();
+}
+/*
+function destroyViking() {
+    this.monster.setVelocityX(0);
+
+    if (this.monster.x > this.viking.x ){
+        this.monster.anims.play('monsterAttackLeft', true);
+    }
+    else{
+        this.monster.anims.play('monsterAttackRight', true);
+    }
+}
+*/
 var game = new Phaser.Game(config);
 
 
