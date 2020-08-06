@@ -189,6 +189,10 @@ function create() {
         });
     });
 
+    this.socket.on('game-over', function() {
+        gameOver();
+    });
+
     //Adding monster to game
     //this.monster = this.physics.add.sprite(200, 265, 'monsterCharacter', 11 * (mainCharacterRows) + 0);
     this.enemies = this.physics.add.group();
@@ -911,7 +915,9 @@ function vikingRespawn() {
 
 
 function gameOver() {
-    this.scene.pause;
+    var self = game.scene.scenes[0];
+    console.log(self);
+    self.scene.pause();
 }
 
 function getRoomCode() {
