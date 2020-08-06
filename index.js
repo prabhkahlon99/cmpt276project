@@ -7,20 +7,23 @@ const passport = require('passport');
 const passprt = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 var cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 initialize();
 
 
 const PORT = process.env.PORT || 5000
 
+//connect to database
 const { Pool } = require('pg');
 var pool;
 pool = new Pool({
-  //connectionString: 'postgres://postgres:2590@localhost/logindb'
-  connectionString: process.env.DATABASE_URL
+   connectionString: 'postgres://postgres:2590@localhost/logindb'
+  //connectionString: process.env.DATABASE_URL
   //connectionString: 'postgres://postgres:root@localhost:5432/logindb'
 })
 
+//middlewares
 var app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
@@ -40,6 +43,10 @@ app.get('/', checkNotAuthenticated, (req, res) => res.render('pages/index'));
 //renders to the register page in the views/pages.
 app.get("/register", checkNotAuthenticated, (req, res) => {
   res.render("pages/register");
+});
+
+app.get("/reset",(req, res) => {
+  res.render("pages/reset");
 });
 
 app.get("/adminregister", checkNAuthenticated, (req, res) => {
@@ -227,7 +234,7 @@ app.post("/register", checkNotAuthenticated, async (req, res) => {
 });
 
 //admin add getusers
-app.post("/adminregister", checkNAuthenticated, async (req, res) => {
+app.post("/adminregister", verifyToken, async (req, res) => {
   let name = req.body.name;
   let email = req.body.email;
   let type = req.body.type;
@@ -361,10 +368,11 @@ app.post("/adminlogin", checkNAuthenticated, (req,res) => {
       throw error;
     }
     if(results.rows.length > 0){
-      let user1 = results.rows[0];
-      let usertype1 = 'admin';
+      const user1 = results.rows[0];
+      const usertype1 = 'admin';
       if(pass == user1.password && usertype1 == user1.type){
-          res.render("pages/admin");
+        const token = jwt.sign({ user1 }, 'secretkey');
+        res.render("pages/admin");
         }
         else{
           req.flash("success_msg", "Access not allowed!!!!");
@@ -403,12 +411,22 @@ function checkNAuthenticated(req, res, next) {
   }
     next();
 }
-function checkDAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return res.redirect("/admin");
-   }
-  return res.redirect("/adminlogin");
+
+function verifyToken(req, res, next){
+
+  const bearerHeader = req.headers["authorization"];
+  if(typeof bearerHeader !== 'undefined') {
+    const bearer = bearerHeader.split(" ");
+    const bearerToken = bearer[1];
+    req.token = bearerToken;
+    next();
+  } else {
+    // Forbidden
+    res.json({message:'Access not allowed'});
+  }
+
 }
+
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
