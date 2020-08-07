@@ -1016,7 +1016,3 @@ function onEvent() {
 
 
 var game = new Phaser.Game(config);
-
-
-
-
