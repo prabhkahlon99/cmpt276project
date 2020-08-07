@@ -171,12 +171,15 @@ app.get('/home', (req, res) => {
   }
 });
 
-//
-app.post('/deleteUser', (req, res) => {
-  var id = req.body.id;
+app.post('/deleteUser',(req, res) => {
+  var email = req.body.email;
+  var adminemail = 'admin@admin.com';
 
   let errors = [];
-  if (id > 0) {
+  if( adminemail == email ){
+    req.flash("success_msg", "Sorry, Cannot delete the main user!!!");
+    res.render('pages/delete');
+  }else{
     pool.query(
       `SELECT * FROM loginusers WHERE email = $1`,
       [email],
@@ -184,26 +187,21 @@ app.post('/deleteUser', (req, res) => {
         if (error) {
           throw error;
         }
-        if (results.rows.length == 0) {
-          errors.push({ message: "User does not exist!!" });
-          res.render("pages/delete", { errors });
-        } else {
+        if( results.rows.length == 0) {
+          errors.push({ message: "User doesnot exist!!" });
+          res.render("pages/delete", {errors});
+        }else {
           pool.query(
-            `delete FROM loginusers WHERE id = $1`,
-            [id],
-            (error, results) => {
-              if (error) {
-                throw error;
-              }
-              req.flash("success_msg", "User deleted successfully...");
-              res.render('pages/delete', results);
+            `delete FROM loginusers WHERE email = $1`,
+            [email],
+            (error,results) => { if (error) {
+              throw error;
             }
-          );
-        }
-      });
-  } else {
-    req.flash("success_msg", "Sorry, Cannot delete the main user!!!");
-    res.render('pages/delete');
+            req.flash("success_msg", "User deleted successfully...");
+            res.render('pages/delete', results);
+          });
+      }
+    });
   }
 });
 
