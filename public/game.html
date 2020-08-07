@@ -15,29 +15,23 @@
   <title>Game Page</title>
 </head>
 
-<div class="header">
-  <h2 class="logo">Viking Bash</h2>
-  <input type="checkbox" id="chk">
-  <label for="chk" class="show-menu-btn">
-    <i class="fas fa-ellipsis-h"></i>
-  </label>
-
-  <ul class="menu">
-    <a id="link" href="controls.html">How to play the game</a>
-
-    <a id="link" href="/logout">Logout</a>
-
-    <label for="chk" class="hide-menu-btn">
-      <i class="fas fa-times"></i>
-    </label>
-  </ul>
-</div>
-
 <body>
-  <header>
-    <!-- Log out -->
-    <a id="link" href="/logout">Logout</a>
-  </header>
+  <div class="header">
+    <h2 class="logo">Viking Bash</h2>
+    <input type="checkbox" id="chk">
+    <label for="chk" class="show-menu-btn">
+      <i class="fas fa-ellipsis-h"></i>
+    </label>
+
+    <ul class="menu">
+
+      <a id="link" href="/logout">Logout</a>
+
+      <label for="chk" class="hide-menu-btn">
+        <i class="fas fa-times"></i>
+      </label>
+    </ul>
+  </div>
   <!-- Main game scripts -->
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="game/game.js"></script>

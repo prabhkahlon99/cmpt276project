@@ -3,10 +3,10 @@ var rooms = [];
 var users = [];
 
 function generateNewRoom() {
-    var result = crypto.randomBytes(5).toString('Hex');
+    var result = crypto.randomBytes(3).toString('Hex');
     //console.log(result);
     while(!isRoom(result)) {
-        result = crypto.randomBytes(5).toString('Hex');
+        result = crypto.randomBytes(3).toString('Hex');
     }
     rooms.push(result);
     let fgh = isRoom(result);

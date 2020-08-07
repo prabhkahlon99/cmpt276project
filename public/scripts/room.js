@@ -1,4 +1,8 @@
 var playerList = document.getElementById("players");
+var roomHeader = document.getElementById('displayRoom');
+let roomCodeHeader = document.createElement("H1");
+roomCodeHeader.innerHTML = "Room Code = " + getRoomCode();
+roomHeader.appendChild(roomCodeHeader);
 var socket = io();
 
 socket.emit('joinRoom', getRoomCode());

@@ -67,7 +67,12 @@ app.get("/delete", (req, res) => {
 
 //renders to the room (game) main page in the views/pages.
 app.get("/gamehome", (req, res) => {
-  res.redirect(301, "menu.html");
+  if (req.isAuthenticated()) {
+    res.redirect(301, "menu.html");
+  }
+  else {
+    res.redirect(301, "/login");
+  }
 });
 
 app.get("/adminlogin", checkNAuthenticated, (req, res) => {
