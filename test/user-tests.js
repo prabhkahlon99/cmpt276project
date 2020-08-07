@@ -11,7 +11,7 @@ chai.use(chaiHttp);
 describe('Users', function() {
   //<-----------post tasks--------->
     it('should add a single user on a successful POST request and redirects and renders login page', function(done) {
-        chai.request(server).post('/register').send({'name' : 'name of name', 'email': 'test@email.com', 'password' : 'supersecret', 'passwordre' : 'supersecret'})
+        chai.request(server).post('/register').send({'name' : 'name of name', 'email': 'email' + Math.floor(Math.random() * 2001) + '@email.com', 'password' : 'supersecret', 'passwordre' : 'supersecret'})
             .end(function(error,res) {
                 res.should.have.status(200);
                 res.should.be.html;
@@ -22,13 +22,13 @@ describe('Users', function() {
                 done();
             });
     });
-    it('should login a registered user and take them to the game home page', function(done) {
+    it('should login a registered user and take them to the menu page', function(done) {
         chai.request(server).post('/login').send({'email': 'admin@admin.com','password' : 'password'})
             .end(function(error,res) {
                 res.should.have.status(200);
                 res.should.be.html;
                 res.should.be.ok;
-                res.text.should.match(/Game Page/);
+                res.text.should.match(/Join or Create a Room/);
                 done();
             });
     });

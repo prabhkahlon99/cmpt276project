@@ -1,41 +1,46 @@
-<head><script src="jquery-3.5.1.min.js"></script></head>
-
 <!DOCTYPE html>
 
 <html lang="en" dir="ltr">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-    <!-- , maximum-scale=1, minimum-scale=1, user-scalable=no  Using cdn to get phaser for now. Doing this to pervent merge conflict. Will switch to npm module later. -->
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.23.0/dist/phaser.js"></script>
-     <link rel="stylesheet" href="./stylesheets/gamestyle.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css">
-    <title>Game Page</title>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+  <!-- Jquery for referencing weather api -->
+  <script src="jquery-3.5.1.min.js"></script>
+  <!-- Using cdn to get phaser for now. Doing this to prevent merge conflict. Will switch to npm module later. -->
+  <script src="//cdn.jsdelivr.net/npm/phaser@3.23.0/dist/phaser.js"></script>
+  <link rel="stylesheet" href="./stylesheets/gamestyle.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css">
+  <title>Game Page</title>
 </head>
 
 <div class="header">
-    <h2 class="logo">Viking Bash</h2>
-    <input type="checkbox" id="chk">
-    <label for="chk" class="show-menu-btn">
-      <i class="fas fa-ellipsis-h"></i>
+  <h2 class="logo">Viking Bash</h2>
+  <input type="checkbox" id="chk">
+  <label for="chk" class="show-menu-btn">
+    <i class="fas fa-ellipsis-h"></i>
+  </label>
+
+  <ul class="menu">
+    <a id="link" href="controls.html">How to play the game</a>
+
+    <a id="link" href="/logout">Logout</a>
+
+    <label for="chk" class="hide-menu-btn">
+      <i class="fas fa-times"></i>
     </label>
-
-    <ul class="menu">
-      <a id="link" href="controls.html">How to play the game</a>
-
-      <a id="link" href="/logout">Logout</a>
-
-      <label for="chk" class="hide-menu-btn">
-        <i class="fas fa-times"></i>
-      </label>
-    </ul>
-  </div>
+  </ul>
+</div>
 
 <body>
-    <!-- Main game script -->
-    <script type="text/javascript" src="game/game.js"></script>
+  <header>
+    <!-- Log out -->
+    <a id="link" href="/logout">Logout</a>
+  </header>
+  <!-- Main game scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="game/game.js"></script>
 </body>
 
 </html>
