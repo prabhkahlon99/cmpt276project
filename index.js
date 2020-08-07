@@ -107,16 +107,14 @@ app.get('/database', checkNAuthenticated, (req, res) => {
 
 //Searchs and prints user with that id.
 app.get('/searchUser',(req, res) => {
-  if(token == null){
-    res.render("pages/adminlogin");
-  }else{
-    var id = req.query.id;
+
+    var email = req.query.email;
 
     let errors = [];
 
     pool.query(
-      `SELECT * FROM loginusers WHERE id = $1`,
-      [id],
+      `SELECT * FROM loginusers WHERE email = $1`,
+      [email],
       (error, result) => {
       if (error) {
         throw error;
@@ -129,10 +127,7 @@ app.get('/searchUser',(req, res) => {
         var results = {'rows':result.rows}
         res.render('pages/db', results);
       }
-
   });
-  }
-
 });
 
 
@@ -148,13 +143,17 @@ app.get('/home', (req, res) => {
 
 //
 app.post('/deleteUser',(req, res) => {
-  var id = req.body.id;
+  var email = req.body.email;
+  var adminemail = 'admin@admin.com';
 
   let errors = [];
-  if( id > 0){
+  if( adminemail == email ){
+    req.flash("success_msg", "Sorry, Cannot delete the main user!!!");
+    res.render('pages/delete');
+  }else{
     pool.query(
-      `SELECT * FROM loginusers WHERE id = $1`,
-      [id],
+      `SELECT * FROM loginusers WHERE email = $1`,
+      [email],
       (error, results) => {
         if (error) {
           throw error;
@@ -164,20 +163,16 @@ app.post('/deleteUser',(req, res) => {
           res.render("pages/delete", {errors});
         }else {
           pool.query(
-            `delete FROM loginusers WHERE id = $1`,
-            [id],
+            `delete FROM loginusers WHERE email = $1`,
+            [email],
             (error,results) => { if (error) {
               throw error;
             }
             req.flash("success_msg", "User deleted successfully...");
             res.render('pages/delete', results);
-          }
-        );
+          });
       }
     });
-  } else {
-    req.flash("success_msg", "Sorry, Cannot delete the main user!!!");
-    res.render('pages/delete');
   }
 });
 
