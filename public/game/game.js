@@ -42,7 +42,7 @@ function preload() {
     this.load.image('cloudyBlue', 'assets/cloudyblue.png')
     this.load.image('clearGrey', 'assets/forestCloudy.png')
     this.load.image('cloudyGrey', 'assets/cloudygrey.png')
-    this.load.image('rainyGrey', 'assets/orangeRain.png')
+    this.load.image('orangeRain', 'assets/orangeRain.png')
     this.load.image('elsePink', 'assets/desertClouds.jpg')
     this.load.image('blueMinimalClouds', 'assets/blueMinimalClouds.png')
     this.load.image('orangeCloudy', 'assets/orangeCloudy.png')
@@ -97,14 +97,14 @@ function create() {
     }
 
     else if (status == "Drizzle" || status == "Rain") {
-        this.add.image(800, 400, 'orangeRainy').setScale(6); // Done
+        this.add.image(800, 400, 'orangeRain').setScale(6); // Done
     }
 
     else {
         this.add.image(800, 400, 'elsePink').setScale(0.25);
     }
     // if (temperature >= 15 && )
-    this.gameOverText = this.add.text(800, 400, 'GAME OVER', {fontSize: '64px', fill: '#000'});
+    this.gameOverText = this.add.text(800, 400, 'GAME OVER', { fontSize: '64px', fill: '#000' });
     this.gameOverText.setOrigin(0.5);
     this.gameOverText.visible = false;
     //this.cameras.main.backgroundColor.setTo(61,72,73); // Set background colour using RGB
@@ -170,12 +170,13 @@ function create() {
     });
 
     self.socket.on('playerKilled', function (id) {
+        self.score -= 500;
+        self.scoreText.setText('Score: ' + self.score);
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (id == otherPlayer.id) {
                 otherPlayer.setActive(false);
                 otherPlayer.setVisible(false);
                 otherPlayer.body.enable = false;
-                self.time.delayedCall(2000, vikingRespawn, [], self);
             }
         });
     });
@@ -191,7 +192,7 @@ function create() {
         });
     });
 
-    this.socket.on('game-over', function() {
+    this.socket.on('game-over', function () {
         gameOver();
     });
 
@@ -200,16 +201,16 @@ function create() {
     this.enemies = this.physics.add.group();
     this.enemies.monsterCount = 0;
     var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
-    var monsterSpawnX = [200, 450, 600];
-    var monsterSpawnY = [265, 400, 400];
-    for (let i = 0; i < 4; i++) {
+    var monsterSpawnX = [450, 600, 800, 1540, 800, 60, 140, 785];
+    var monsterSpawnY = [400, 400, 535, 535, 280, 535, 700, 700];
+    for (let i = 0; i < 8; i++) {
         let randomSpawn = Math.floor(Math.random(monsterSpawnX.length) * monsterSpawnX.length)
         let randomType = monsterTypes[Math.floor(Math.random(monsterTypes.length) * monsterTypes.length)];
         let newEnemy = this.add.sprite(monsterSpawnX[randomSpawn], monsterSpawnY[randomSpawn], randomType, 11 * (mainCharacterRows) + 0);
         newEnemy.isDead = false;
         newEnemy.type = randomType
         newEnemy.isAttacking = false;
-        
+
         this.enemies.add(newEnemy);
         this.enemies.monsterCount++;
     }
@@ -281,6 +282,9 @@ function create() {
 
     this.controls = this.input.keyboard.createCursorKeys(); // Allows the access of user arrow key presses
     this.input.on('pointerdown', throwAxe, this);
+    this.input.on('pointerdown', function () {
+        console.log(viking.x, viking.y);
+    }, this);
     this.physics.world.on('worldbounds', destroyWeapon);
 
 
@@ -508,20 +512,20 @@ function create() {
 
     this.viking.isBeingAttacked = false;
 
-    
+
     this.initialTime = 120;
     timeText = this.add.text(1400, 16, 'Countdown: ' + formatTime(this.initialTime));
-    timedEvent = this.time.addEvent({ delay: 1000, callback: onEvent, callbackScope: this, loop: true});
+    timedEvent = this.time.addEvent({ delay: 1000, callback: onEvent, callbackScope: this, loop: true });
     //timerTest = this.time.delayedCall(3000, gameOver, [], this); //COMMENT THIS OUT IF NOT TESTING
 
-    
+
 }
 
 
 function update() {
 
-   
-    
+
+
 
     controls = this.controls
     this.inputKeys = this.input.keyboard.addKeys({
@@ -641,29 +645,31 @@ function update() {
             }
         }
         else if (enemy.body.velocity.x == 0) {
-            if (enemy.anims.currentAnim.key == 'monsterLeft') {
-                enemy.body.setVelocityX(100);
-                enemy.anims.play('monsterRight', true);
-            }
-            else if (enemy.anims.currentAnim.key == 'monsterRight') {
-                enemy.body.setVelocityX(-100);
-                enemy.anims.play('monsterLeft', true);
-            }
-            else if (enemy.anims.currentAnim.key == 'skeletonLeft') {
-                enemy.body.setVelocityX(100);
-                enemy.anims.play('skeletonRight', true);
-            }
-            else if (enemy.anims.currentAnim.key == 'skeletonRight') {
-                enemy.body.setVelocityX(-100);
-                enemy.anims.play('skeletonLeft', true);
-            }
-            else if (enemy.anims.currentAnim.key == 'lizardLeft') {
-                enemy.body.setVelocityX(100);
-                enemy.anims.play('lizardRight', true);
-            }
-            else if (enemy.anims.currentAnim.key == 'lizardRight') {
-                enemy.body.setVelocityX(-100);
-                enemy.anims.play('lizardLeft', true);
+            if (enemy.anims.key) {
+                if (enemy.anims.currentAnim.key == 'monsterLeft') {
+                    enemy.body.setVelocityX(100);
+                    enemy.anims.play('monsterRight', true);
+                }
+                else if (enemy.anims.currentAnim.key == 'monsterRight') {
+                    enemy.body.setVelocityX(-100);
+                    enemy.anims.play('monsterLeft', true);
+                }
+                else if (enemy.anims.currentAnim.key == 'skeletonLeft') {
+                    enemy.body.setVelocityX(100);
+                    enemy.anims.play('skeletonRight', true);
+                }
+                else if (enemy.anims.currentAnim.key == 'skeletonRight') {
+                    enemy.body.setVelocityX(-100);
+                    enemy.anims.play('skeletonLeft', true);
+                }
+                else if (enemy.anims.currentAnim.key == 'lizardLeft') {
+                    enemy.body.setVelocityX(100);
+                    enemy.anims.play('lizardRight', true);
+                }
+                else if (enemy.anims.currentAnim.key == 'lizardRight') {
+                    enemy.body.setVelocityX(-100);
+                    enemy.anims.play('lizardLeft', true);
+                }
             }
         }
     });
@@ -753,7 +759,7 @@ function destroyEarly(axe) {
     if (weapon) {
         weapon.setActive(false);
         weapon.setVisible(false);
-        weapon.setPosition(0,0);
+        weapon.setPosition(0, 0);
     }
 }
 
@@ -765,6 +771,12 @@ function checkAxeCollisions(axe, platform) {
 
 function destroyMonster(axe, enemy) {
     var self = game.scene.scenes[0];
+    var weapon = axe.body.gameObject;
+    if (weapon) {
+        weapon.setActive(false);
+        weapon.setVisible(false);
+        weapon.setPosition(0, 0);
+    }
     if (enemy.isDead) {
         return;
     }
@@ -794,10 +806,51 @@ function destroyMonster(axe, enemy) {
 }
 
 function delayMonsterDeath(monster) {
-    monster.destroy();
+    monster.setActive(false);
+    monster.setVisible(false);
+    monster.body.enable = false;
     this.enemies.monsterCount--;
-    //var timer = this.time.delayedCall(2000, monsterRespawn,[], this);
+    var timer = this.time.delayedCall(2000, monsterRespawn, [], this);
+    var death = this.time.delayedCall(1800, killMonster, [monster], this);
 
+}
+
+function killMonster(monster) {
+    monster.destroy();
+}
+
+function monsterRespawn() {
+    var self = game.scene.scenes[0];
+    var mainCharacterRows = 13;
+    var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
+    var monsterSpawnX = [450, 600, 800, 1540, 800, 60, 140, 785];
+    var monsterSpawnY = [400, 400, 535, 535, 280, 535, 700, 700];
+    let randomSpawn = Math.floor(Math.random(monsterSpawnX.length) * monsterSpawnX.length)
+    let randomType = monsterTypes[Math.floor(Math.random(monsterTypes.length) * monsterTypes.length)];
+    let newEnemy = self.add.sprite(monsterSpawnX[randomSpawn], monsterSpawnY[randomSpawn], randomType, 11 * (mainCharacterRows) + 0);
+    newEnemy.isDead = false;
+    newEnemy.type = randomType
+    newEnemy.isAttacking = false;
+
+    self.enemies.add(newEnemy);
+    self.enemies.monsterCount++;
+
+    self.enemies.getChildren().forEach(function (enemy) {
+        if (!enemy.anims.key) {
+            if (enemy.type == 'monsterCharacter') {
+                enemy.body.setVelocityX(100);
+                enemy.anims.play('monsterRight', true);
+            }
+            if (enemy.type == 'skeleton') {
+                enemy.body.setVelocityX(100);
+                enemy.anims.play('skeletonRight', true);
+            }
+            if (enemy.type == 'lizard') {
+                enemy.body.setVelocityX(-100);
+                enemy.anims.play('lizardLeft', true);
+            }
+        }
+    });
 }
 
 function monsterScore() {
@@ -911,6 +964,10 @@ function vikingKilled() {
     self.viking.setActive(false);
     self.viking.setVisible(false);
     self.viking.body.enable = false;
+    if (self.score >= 500) {
+        self.score -= 500;
+        self.scoreText.setText('Score: ' + self.score);
+    }
     self.time.delayedCall(2000, vikingRespawn, [], self);
 }
 
@@ -940,17 +997,17 @@ function getRoomCode() {
     return roomCode;
 }
 
-function formatTime(seconds){
-    var minutes = Math.floor(seconds/60);
+function formatTime(seconds) {
+    var minutes = Math.floor(seconds / 60);
 
-    var partInSeconds = seconds%60;
+    var partInSeconds = seconds % 60;
 
-    partInSeconds = partInSeconds.toString().padStart(2,'0');
+    partInSeconds = partInSeconds.toString().padStart(2, '0');
 
     return `${minutes}:${partInSeconds}`;
 }
 
-function onEvent(){
+function onEvent() {
     this.initialTime -= 1;
     timeText.setText('Countdown: ' + formatTime(this.initialTime));
 }

@@ -16,8 +16,8 @@ const { Pool } = require('pg');
 var pool;
 pool = new Pool({
   //connectionString: 'postgres://postgres:2590@localhost/logindb'
-  //connectionString: process.env.DATABASE_URL
-  connectionString: 'postgres://postgres:root@localhost:5432/logindb'
+  connectionString: process.env.DATABASE_URL
+  //connectionString: 'postgres://postgres:root@localhost:5432/logindb'
 })
 
 var app = express();
@@ -516,7 +516,7 @@ io.on('connection', function (socket) {
       console.log('over');
       console.log(room);
       io.in(room).emit('game-over');
-    }, 130000); 
+    }, 135000); 
   });
   socket.on('disconnect', function () {
     //console.log(socket.request.user);
