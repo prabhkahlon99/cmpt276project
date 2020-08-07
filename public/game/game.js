@@ -274,7 +274,6 @@ function create() {
         }
     });;
     this.physics.add.collider(this.otherAxes, this.viking, function (viking, axe) {
-        console.log(axe);
         destroyEarly(axe);
         reduceHealth();
     });
@@ -282,9 +281,6 @@ function create() {
 
     this.controls = this.input.keyboard.createCursorKeys(); // Allows the access of user arrow key presses
     this.input.on('pointerdown', throwAxe, this);
-    this.input.on('pointerdown', function () {
-        console.log(viking.x, viking.y);
-    }, this);
     this.physics.world.on('worldbounds', destroyWeapon);
 
 
@@ -986,8 +982,12 @@ function vikingRespawn() {
 function gameOver() {
     var self = game.scene.scenes[0];
     self.gameOverText.setVisible(true);
-    console.log(self);
     self.scene.pause();
+    var timer = self.time.delayedCall(1000, leaveGame, [], self);
+}
+
+function leaveGame() {
+    window.location.replace("/menu.html");
 }
 
 function getRoomCode() {
