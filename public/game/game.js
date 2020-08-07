@@ -203,7 +203,7 @@ function create() {
     var monsterTypes = ['monsterCharacter', 'skeleton', 'lizard'];
     var monsterSpawnX = [450, 600, 800, 1540, 800, 60, 140, 785];
     var monsterSpawnY = [400, 400, 535, 535, 280, 535, 700, 700];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 5; i++) {
         let randomSpawn = Math.floor(Math.random(monsterSpawnX.length) * monsterSpawnX.length)
         let randomType = monsterTypes[Math.floor(Math.random(monsterTypes.length) * monsterTypes.length)];
         let newEnemy = this.add.sprite(monsterSpawnX[randomSpawn], monsterSpawnY[randomSpawn], randomType, 11 * (mainCharacterRows) + 0);
