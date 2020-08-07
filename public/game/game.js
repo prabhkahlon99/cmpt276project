@@ -170,10 +170,10 @@ function create() {
     });
 
     self.socket.on('playerKilled', function (id) {
-        self.score -= 500;
-        self.scoreText.setText('Score: ' + self.score);
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (id == otherPlayer.id) {
+                self.score += 500;
+                self.scoreText.setText('Score: ' + self.score);
                 otherPlayer.setActive(false);
                 otherPlayer.setVisible(false);
                 otherPlayer.body.enable = false;
@@ -982,8 +982,9 @@ function vikingRespawn() {
 function gameOver() {
     var self = game.scene.scenes[0];
     self.gameOverText.setVisible(true);
+    timeText.setText('Countdown: ' + formatTime(0));
     self.scene.pause();
-    var timer = self.time.delayedCall(1000, leaveGame, [], self);
+    setTimeout(leaveGame, 1000);
 }
 
 function leaveGame() {
