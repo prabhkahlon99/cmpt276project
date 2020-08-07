@@ -14,7 +14,7 @@ var config = {
         default: "arcade",
         arcade: {
             gravity: { y: 250 },
-            debug: true // set to true to see sprite hitbox etc
+            debug: false // set to true to see sprite hitbox etc
         }
     },
     scene: {
@@ -683,6 +683,7 @@ function update() {
         if (axe.active) {
             if (axe.y < 0 || axe.y > worldHeight || axe.x < 0 || axe.x > worldWidth) {
                 axe.setActive(false);
+                destroyEarly(axe);
             }
         }
     });
@@ -984,7 +985,7 @@ function gameOver() {
     self.gameOverText.setVisible(true);
     timeText.setText('Countdown: ' + formatTime(0));
     self.scene.pause();
-    setTimeout(leaveGame, 1000);
+    setTimeout(leaveGame, 3000);
 }
 
 function leaveGame() {
